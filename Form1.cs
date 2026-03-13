@@ -470,11 +470,13 @@ namespace Busy_Light
                 {
                     // refresh failed → clear token
                     _tokenService.Clear();
+                    
                 }
-                if (clear = true)
-                {
-
-                }
+               
+            }
+            else
+            {
+                loginProc();
             }
             comboBox1.Items.Add("Available");
             comboBox1.Items.Add("Unavailable");
@@ -508,6 +510,7 @@ namespace Busy_Light
         }
         public async Task<string> GetAuthorizeUrl(RestClient restClient)
         {
+
             var authExt = new AuthorizeUriExtension();
             await restClient.InstallExtension(authExt);
 
@@ -570,18 +573,17 @@ namespace Busy_Light
             reallyClose = true;
             this.Close();
         }
-
-
-
-
-        public async void btnLogin_Click(object sender, EventArgs e)
+        public async void loginProc()
         {
-
-
             await GetAuthorizeUrl(_restClient);
             // Open system browser
-            Popup popup = new Popup();
-            popup.Show();
+            var authUrl = await GetAuthorizeUrl(_restClient);
+            System.Diagnostics.Process.Start(new ProcessStartInfo
+            {
+                FileName = authUrl,
+                UseShellExecute = true
+            });
+
             // Start local listener
             var listener = new HttpListener();
             listener.Prefixes.Add("http://localhost:5000/oauth2callback/");
@@ -605,9 +607,18 @@ namespace Busy_Light
                 _tokenService.Save(_restClient.token);
 
                 MessageBox.Show("Login successful!");
-                popup.Close();
+
                 await StartWebSocket();
             }
+        }
+
+
+
+        public async void btnLogin_Click(object sender, EventArgs e)
+        {
+
+
+           loginProc();
         }
 
         private void button1_Click(object sender, EventArgs e)
