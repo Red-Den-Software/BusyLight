@@ -1,9 +1,11 @@
+using Microsoft.Win32;
 using RingCentral;
 using RingCentral.Net.AuthorizeUri;
 using RingCentral.Net.WebSocket;
 using System.Diagnostics;
 using System.IO.Ports;
 using System.Net;
+using System.Security.AccessControl;
 using System.Text;
 using System.Text.Json;
 using static rc_program.Program;
@@ -15,9 +17,10 @@ namespace Busy_Light
 
         private readonly RestClient _restClient;
         
-       
+
+
         private string RedirectUri = Environment.GetEnvironmentVariable("REDIRECT_URI");
-        
+
         private void textBox1_c()
         {
             textBox1.Text = "Connected";
@@ -34,6 +37,7 @@ namespace Busy_Light
         {
             public string Theme { get; set; }
             public int Brightness { get; set; }
+            public bool StartWithWindows { get; set; }
         }
         public class SettingsService
         {
@@ -65,7 +69,8 @@ namespace Busy_Light
                     Settings = new UserSettings
                     {
                         Theme = "Dark",
-                        Brightness = 255
+                        Brightness = 255,
+                        StartWithWindows = false
                     };
                     Save(); // create file first time
                 }
@@ -374,14 +379,14 @@ namespace Busy_Light
             SerialPortScanner.ifport(this);
             trackBar1.Scroll += trackBar1_Scroll;
             trackBar1.Value = _settingsService.Settings.Brightness; // start at max (100%)
-
+            checkBox1.Checked = _settingsService.Settings.StartWithWindows;
             // Update label initially
             UpdateBrightnessLabel(trackBar1.Value);
 
         }
 
 
-      
+
         public void UpdateBrightnessLabel(int value)
         {
             var settingsService = new SettingsService();
@@ -439,7 +444,7 @@ namespace Busy_Light
         private async void Form1_Load(object sender, EventArgs e)
 
         {
-            
+
             bool clear = _tokenService.Clear();
             var token = _tokenService.Load();
             if (_restClient.token != null)
@@ -457,9 +462,9 @@ namespace Busy_Light
                 {
                     // refresh failed → clear token
                     _tokenService.Clear();
-                    
+
                 }
-               
+
             }
             else
             {
@@ -518,16 +523,16 @@ namespace Busy_Light
         {
             if (trayIcon == null)
             {
-                
+
                 trayIcon = new NotifyIcon
                 {
-                    
+
                     Icon = this.Icon,
                     Visible = true,
                     Text = "Busy Light"
-                    
+
                 };
-                
+
                 var contextMenu = new ContextMenuStrip();
                 var exitItem = new ToolStripMenuItem("Exit");
                 exitItem.Click += ExitItem_Click;
@@ -541,14 +546,9 @@ namespace Busy_Light
                     this.Show();
                     this.WindowState = FormWindowState.Normal;
                     this.ShowInTaskbar = true;
+
                 };
-                trayIcon.DoubleClick += (s, e) =>
-                {
-                    this.Show();
-                    this.WindowState = FormWindowState.Normal;
-                    this.ShowInTaskbar = true;
-                    
-                };
+
             }
         }
         public void MinimizeToTray()
@@ -557,7 +557,11 @@ namespace Busy_Light
             this.Hide(); // Hides the form
             this.ShowInTaskbar = false;
             this.WindowState = FormWindowState.Minimized;
-            this.Icon = SystemIcons.Application; // Set a default icon
+            Icon = this.Icon; // Set a default icon
+            notifyIcon1.BalloonTipTitle = "Application Minimized";
+            notifyIcon1.BalloonTipText = "Double click the icon to restore.";
+            notifyIcon1.ShowBalloonTip(1000); // Show for 1 second
+
         }
         private void ExitItem_Click(object sender, EventArgs e)
         {
@@ -600,6 +604,8 @@ namespace Busy_Light
 
                 MessageBox.Show("Login successful!");
 
+                await _restClient.Get("/restapi/v1.0/account/~/extension/~/presence");
+
                 await StartWebSocket();
             }
         }
@@ -610,7 +616,7 @@ namespace Busy_Light
         {
 
 
-           loginProc();
+            loginProc();
         }
 
         private void button1_Click(object sender, EventArgs e)
@@ -660,6 +666,31 @@ namespace Busy_Light
             }
         }
 
+        private void button2_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void checkBox1_CheckedChanged(object sender, EventArgs e)
+        {
+            RegistryKey registryKey = Registry.CurrentUser.OpenSubKey("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run", true);
+            if (checkBox1.Checked)
+            {
+                // Add the value in the registry so that the application runs at startup
+                registryKey.SetValue("Busy Light", Application.ExecutablePath);
+                _settingsService.Settings.StartWithWindows = true;
+                _settingsService.Save();
+            }
+            else
+            {
+                registryKey.DeleteValue("Busy Light", false);
+            }
+        }
+
+        private void notifyIcon1_MouseDoubleClick(object sender, MouseEventArgs e)
+        {
+
+        }
     }
 }
 
