@@ -8,6 +8,8 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <GenerateAssemblyInfo>True</GenerateAssemblyInfo>
     <ApplicationIcon>gc_light.ico</ApplicationIcon>
+	 
+	  <ForceDesignerDpiUnaware>true</ForceDesignerDpiUnaware>
   </PropertyGroup>
 
   <ItemGroup>

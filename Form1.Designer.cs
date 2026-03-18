@@ -44,6 +44,14 @@ namespace Busy_Light
             button2 = new Button();
             checkBox1 = new CheckBox();
             notifyIcon1 = new NotifyIcon(components);
+            checkBox2 = new CheckBox();
+            comboBox2 = new ComboBox();
+            label3 = new Label();
+            label4 = new Label();
+            label5 = new Label();
+            comboBox3 = new ComboBox();
+            label6 = new Label();
+            comboBox4 = new ComboBox();
             ((System.ComponentModel.ISupportInitialize)trackBar1).BeginInit();
             SuspendLayout();
             // 
@@ -173,12 +181,97 @@ namespace Busy_Light
             notifyIcon1.Visible = true;
             notifyIcon1.MouseDoubleClick += notifyIcon1_MouseDoubleClick;
             // 
+            // checkBox2
+            // 
+            checkBox2.AutoSize = true;
+            checkBox2.Location = new Point(186, 110);
+            checkBox2.Name = "checkBox2";
+            checkBox2.Size = new Size(197, 22);
+            checkBox2.TabIndex = 11;
+            checkBox2.Text = "Message Recieved Alert";
+            checkBox2.UseVisualStyleBackColor = true;
+            // 
+            // comboBox2
+            // 
+            comboBox2.DropDownStyle = ComboBoxStyle.DropDownList;
+            comboBox2.FormattingEnabled = true;
+            comboBox2.Location = new Point(665, 87);
+            comboBox2.Margin = new Padding(5);
+            comboBox2.Name = "comboBox2";
+            comboBox2.Size = new Size(105, 26);
+            comboBox2.TabIndex = 12;
+            // 
+            // label3
+            // 
+            label3.AutoSize = true;
+            label3.Location = new Point(636, 64);
+            label3.Name = "label3";
+            label3.Size = new Size(116, 18);
+            label3.TabIndex = 13;
+            label3.Text = "Custom Colors:";
+            label3.Click += label3_Click_1;
+            // 
+            // label4
+            // 
+            label4.AutoSize = true;
+            label4.Location = new Point(560, 90);
+            label4.Name = "label4";
+            label4.Size = new Size(97, 18);
+            label4.TabIndex = 14;
+            label4.Text = "Oncall Color:";
+            // 
+            // label5
+            // 
+            label5.AutoSize = true;
+            label5.Location = new Point(560, 126);
+            label5.Name = "label5";
+            label5.Size = new Size(97, 18);
+            label5.TabIndex = 16;
+            label5.Text = "Offcall Color:";
+            // 
+            // comboBox3
+            // 
+            comboBox3.DropDownStyle = ComboBoxStyle.DropDownList;
+            comboBox3.FormattingEnabled = true;
+            comboBox3.Location = new Point(665, 123);
+            comboBox3.Margin = new Padding(5);
+            comboBox3.Name = "comboBox3";
+            comboBox3.Size = new Size(105, 26);
+            comboBox3.TabIndex = 15;
+            // 
+            // label6
+            // 
+            label6.AutoSize = true;
+            label6.Location = new Point(468, 162);
+            label6.Name = "label6";
+            label6.Size = new Size(189, 18);
+            label6.TabIndex = 18;
+            label6.Text = "Message Recieved Color:";
+            // 
+            // comboBox4
+            // 
+            comboBox4.DropDownStyle = ComboBoxStyle.DropDownList;
+            comboBox4.FormattingEnabled = true;
+            comboBox4.Location = new Point(665, 159);
+            comboBox4.Margin = new Padding(5);
+            comboBox4.Name = "comboBox4";
+            comboBox4.Size = new Size(105, 26);
+            comboBox4.TabIndex = 17;
+            // 
             // Form1
             // 
             AccessibleName = "Busy Light";
             AutoScaleDimensions = new SizeF(9F, 18F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(784, 361);
+            ClientSize = new Size(784, 366);
+            Controls.Add(label6);
+            Controls.Add(comboBox4);
+            Controls.Add(label5);
+            Controls.Add(comboBox3);
+            Controls.Add(label4);
+            Controls.Add(label3);
+            Controls.Add(comboBox2);
+            Controls.Add(checkBox2);
             Controls.Add(checkBox1);
             Controls.Add(button2);
             Controls.Add(Info);
@@ -193,7 +286,7 @@ namespace Busy_Light
             FormBorderStyle = FormBorderStyle.FixedSingle;
             Icon = (Icon)resources.GetObject("$this.Icon");
             Margin = new Padding(5);
-            MaximumSize = new Size(800, 400);
+            MaximumSize = new Size(800, 500);
             MinimumSize = new Size(800, 400);
             Name = "Form1";
             Text = "Busy Light";
@@ -215,5 +308,13 @@ namespace Busy_Light
         private Button button2;
         private CheckBox checkBox1;
         private NotifyIcon notifyIcon1;
+        private CheckBox checkBox2;
+        private ComboBox comboBox2;
+        private Label label3;
+        private Label label4;
+        private Label label5;
+        private ComboBox comboBox3;
+        private Label label6;
+        private ComboBox comboBox4;
     }
 }

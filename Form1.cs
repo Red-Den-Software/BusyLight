@@ -16,7 +16,7 @@ namespace Busy_Light
     {
 
         private readonly RestClient _restClient;
-        
+
 
 
         private string RedirectUri = Environment.GetEnvironmentVariable("REDIRECT_URI");
@@ -459,6 +459,7 @@ namespace Busy_Light
             }
             comboBox1.Items.Add("Available");
             comboBox1.Items.Add("Unavailable");
+            combox2();
 
         }
 
@@ -472,6 +473,10 @@ namespace Busy_Light
         {
 
 
+        }
+        private void combox2() //OnCall Lighting
+        {
+            comboBox2.Items.Add(Color.Red);
         }
 
         private void comboBox2_SelectedIndexChanged(object sender, EventArgs e)
@@ -673,6 +678,11 @@ namespace Busy_Light
         }
 
         private void notifyIcon1_MouseDoubleClick(object sender, MouseEventArgs e)
+        {
+
+        }
+
+        private void label3_Click_1(object sender, EventArgs e)
         {
 
         }
