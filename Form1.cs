@@ -20,19 +20,6 @@ namespace Busy_Light
 
 
         private string RedirectUri = Environment.GetEnvironmentVariable("REDIRECT_URI");
-
-        private void textBox1_c()
-        {
-            textBox1.Text = "Connected";
-            textBox1.BackColor = Color.Green;
-            textBox1.ReadOnly = true;
-        }
-        private void InitializeTextBox()
-        {
-            textBox1.Text = "Disconnected";
-            textBox1.ReadOnly = true;
-            textBox1.BackColor = Color.Red;
-        }
         public class UserSettings
         {
             public string Theme { get; set; }
@@ -607,11 +594,9 @@ namespace Busy_Light
                 await _restClient.Get("/restapi/v1.0/account/~/extension/~/presence");
 
                 await StartWebSocket();
+                SerialPortScanner.ManualStatusChangeA();
             }
         }
-
-
-
         public async void btnLogin_Click(object sender, EventArgs e)
         {
 
