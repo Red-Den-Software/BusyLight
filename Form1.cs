@@ -1,25 +1,12 @@
-using Busy_Light.RC;
-using Microsoft.Web.WebView2.Core;
-using Newtonsoft.Json.Linq;
-using rc_program;
 using RingCentral;
 using RingCentral.Net.AuthorizeUri;
 using RingCentral.Net.WebSocket;
-using System;
-using System;
 using System.Diagnostics;
 using System.IO.Ports;
-using System.Linq;
-using System.Management;
 using System.Net;
-using System.Net.NetworkInformation;
-using System.Runtime.CompilerServices;
-using System.Security.AccessControl;
 using System.Text;
 using System.Text.Json;
-using static Busy_Light.Form1;
 using static rc_program.Program;
-using static Busy_Light.Popup;
 
 namespace Busy_Light
 {
@@ -531,13 +518,16 @@ namespace Busy_Light
         {
             if (trayIcon == null)
             {
+                
                 trayIcon = new NotifyIcon
                 {
-                    Icon = SystemIcons.Application,
+                    
+                    Icon = this.Icon,
                     Visible = true,
                     Text = "Busy Light"
+                    
                 };
-
+                
                 var contextMenu = new ContextMenuStrip();
                 var exitItem = new ToolStripMenuItem("Exit");
                 exitItem.Click += ExitItem_Click;
@@ -557,6 +547,7 @@ namespace Busy_Light
                     this.Show();
                     this.WindowState = FormWindowState.Normal;
                     this.ShowInTaskbar = true;
+                    
                 };
             }
         }
@@ -566,6 +557,7 @@ namespace Busy_Light
             this.Hide(); // Hides the form
             this.ShowInTaskbar = false;
             this.WindowState = FormWindowState.Minimized;
+            this.Icon = SystemIcons.Application; // Set a default icon
         }
         private void ExitItem_Click(object sender, EventArgs e)
         {
