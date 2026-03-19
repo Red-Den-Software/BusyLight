@@ -431,7 +431,7 @@ namespace Busy_Light
         private async void Form1_Load(object sender, EventArgs e)
 
         {
-
+            label7.Visible = false;
             bool clear = _tokenService.Clear();
             var token = _tokenService.Load();
             if (_restClient.token != null)
@@ -462,13 +462,52 @@ namespace Busy_Light
             combox2();
 
         }
+        private void colors()
+        {
+            string[] coloroptions = new string[] { "Red", "Green", "Blue", "Yellow", "Purple" };
+            foreach (string color in coloroptions)
+            {
+                comboBox2.Items.Add(color);
+            }
 
+        }
         private void trackBar1_Scroll(object sender, EventArgs e)
         {
             UpdateBrightnessLabel(trackBar1.Value);
 
         }
+        private void form1_show_hide()
+        {
 
+            Control[] controls = new Control[]
+   {
+        comboBox1, checkBox1, label1, label2, checkBox2,
+        button1, trackBar1, label4, label3, label5,
+        label6, comboBox3, comboBox4, comboBox2,
+   };
+            foreach (var control in controls)
+            {
+                control.Visible = false;
+            }
+
+
+        }
+        private void form1_show_show()
+        {
+
+            Control[] controls = new Control[]
+   {
+        comboBox1, checkBox1, label1, label2, checkBox2,
+        trackBar1, label4, label3, label5,
+        label6, comboBox3, comboBox4, comboBox2,
+   };
+            foreach (var control in controls)
+            {
+                control.Visible = true;
+            }
+
+
+        }
         private void label1_Click(object sender, EventArgs e)
         {
 
@@ -476,9 +515,43 @@ namespace Busy_Light
         }
         private void combox2() //OnCall Lighting
         {
-            comboBox2.Items.Add(Color.Red);
+            colors();
         }
+        public string ocColor { get; set; }
+        private void combox2_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (comboBox2.SelectedItem == null)
+                return;
+            string selectedColor = comboBox2.SelectedItem.ToString();
 
+            byte command = selectedColor switch
+            {
+                "Red" => 0x10,
+                "Green" => 0x11,
+                "Blue" => 0x12,
+                "Yellow" => 0x13,
+                "Purple" => 0x14,
+                _ => 0x10 // default to Red
+            };
+            selectedColor = ocColor;
+            try
+            {
+                if (SerialPortScanner.IsConnected)
+                {
+                    SerialPortScanner._serialPort.Write(new byte[] { command }, 0, 1);
+                    SerialPortScanner._serialPort.BaseStream.Flush();
+                    Debug.WriteLine($"Sent color command: {command:X2} for {selectedColor}");
+                }
+                else
+                {
+                    Debug.WriteLine("Cannot send color command — COM not started.");
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Failed to send color command: {ex.Message}");
+            }
+        }
         private void comboBox2_SelectedIndexChanged(object sender, EventArgs e)
         {
 
@@ -617,6 +690,7 @@ namespace Busy_Light
                 MessageBox.Show("Please select an option first.");
                 return;
             }
+            
             switch (comboBox1.SelectedItem.ToString())
             {
                 case "Available":
@@ -658,7 +732,8 @@ namespace Busy_Light
 
         private void button2_Click(object sender, EventArgs e)
         {
-
+            form1_show_show();
+            label7.Visible = false;
         }
 
         private void checkBox1_CheckedChanged(object sender, EventArgs e)
@@ -683,6 +758,21 @@ namespace Busy_Light
         }
 
         private void label3_Click_1(object sender, EventArgs e)
+        {
+
+        }
+        private void Info_Show()
+        {
+
+        }
+        private void Info_Click(object sender, EventArgs e)
+        {
+            form1_show_hide();
+            label7.Text = "Busy Light v1.0\n\nDeveloped by Red Den Software\n\nThis application connects to your RingCentral account to monitor your presence status\n\n and updates a connected busy light accordingly. It also allows manual control of the light\n\n and customization of settings.\n\nFor support, please contact support@redden.dev";
+            label7.Visible = true;
+        }
+        
+        private void label7_Click(object sender, EventArgs e)
         {
 
         }

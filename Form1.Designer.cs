@@ -52,6 +52,7 @@ namespace Busy_Light
             comboBox3 = new ComboBox();
             label6 = new Label();
             comboBox4 = new ComboBox();
+            label7 = new Label();
             ((System.ComponentModel.ISupportInitialize)trackBar1).BeginInit();
             SuspendLayout();
             // 
@@ -147,6 +148,7 @@ namespace Busy_Light
             Info.Text = "Info";
             Info.TextAlign = ContentAlignment.MiddleLeft;
             Info.UseVisualStyleBackColor = true;
+            Info.Click += Info_Click;
             // 
             // button2
             // 
@@ -258,12 +260,23 @@ namespace Busy_Light
             comboBox4.Size = new Size(105, 26);
             comboBox4.TabIndex = 17;
             // 
+            // label7
+            // 
+            label7.AutoSize = true;
+            label7.Font = new Font("Arial", 10F, FontStyle.Regular, GraphicsUnit.Point);
+            label7.Location = new Point(181, 14);
+            label7.Name = "label7";
+            label7.Size = new Size(45, 16);
+            label7.TabIndex = 19;
+            label7.Text = "label7";
+            // 
             // Form1
             // 
             AccessibleName = "Busy Light";
             AutoScaleDimensions = new SizeF(9F, 18F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(784, 366);
+            Controls.Add(label7);
             Controls.Add(label6);
             Controls.Add(comboBox4);
             Controls.Add(label5);
@@ -316,5 +329,6 @@ namespace Busy_Light
         private ComboBox comboBox3;
         private Label label6;
         private ComboBox comboBox4;
+        private Label label7;
     }
 }
