@@ -14,17 +14,16 @@ namespace Busy_Light
 {
     public partial class Form1 : Form
     {
-
         private readonly RestClient _restClient;
-
-
-
         private string RedirectUri = Environment.GetEnvironmentVariable("REDIRECT_URI");
         public class UserSettings
         {
             public string Theme { get; set; }
             public int Brightness { get; set; }
             public bool StartWithWindows { get; set; }
+            public string oncall_color { get; set; }
+            public string offcall_color { get; set; }
+            public string msgrecieved_color { get; set; }
         }
         public class SettingsService
         {
@@ -57,7 +56,10 @@ namespace Busy_Light
                     {
                         Theme = "Dark",
                         Brightness = 255,
-                        StartWithWindows = false
+                        StartWithWindows = false,
+                        oncall_color = "Red",
+                        offcall_color = "Green",
+                        msgrecieved_color = "Orange"
                     };
                     Save(); // create file first time
                 }
@@ -197,8 +199,10 @@ namespace Busy_Light
                     Debug.WriteLine($"Serial write failed: {ex.Message}");
                 }
             }
+            public static string oncall_color { get; set; }
             public static void ManualStatusChangeUA()
             {
+                
                 if (!IsConnected)
                 {
                     Debug.WriteLine("Cannot send manual status — COM not started.");
@@ -206,11 +210,12 @@ namespace Busy_Light
                 }
                 try
                 {
+                    
                     if (_serialPort != null && _serialPort.IsOpen)
                     {
-                        byte[] command = { 0x02 };
-
-                        _serialPort.Write(command, 0, 1);
+                        //byte[] command = { 0x02 };
+                        string command = oncall_color;
+                        _serialPort.NewLine = command;
                         System.Diagnostics.Debug.WriteLine($"Port open: {_serialPort?.IsOpen}");
 
                         Debug.WriteLine($"Sent to Arduino: 0x02, {command[0]}");
@@ -468,8 +473,9 @@ namespace Busy_Light
             foreach (string color in coloroptions)
             {
                 comboBox2.Items.Add(color);
+                
             }
-
+            comboBox2.SelectedItem
         }
         private void trackBar1_Scroll(object sender, EventArgs e)
         {
