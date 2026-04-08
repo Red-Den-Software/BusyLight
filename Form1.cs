@@ -170,7 +170,8 @@ namespace Busy_Light
                             if (_serialPort.IsOpen)
                             {
                                 System.Diagnostics.Debug.WriteLine($"{port} opened successfully.");
-
+                                byte[] available = { 0x01 };
+                                _serialPort.Write(available, 0, 1);
                                 form.Invoke((MethodInvoker)(() =>
                                 {
                                     form.textBox1.Text = "Connected";
