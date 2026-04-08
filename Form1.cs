@@ -372,6 +372,8 @@ namespace Busy_Light
             trackBar1.Scroll += trackBar1_Scroll;
             trackBar1.Value = _settingsService.Settings.Brightness; // start at max (100%)
             checkBox1.Checked = _settingsService.Settings.StartWithWindows;
+           
+            
             // Update label initially
             UpdateBrightnessLabel(trackBar1.Value);
 
@@ -437,31 +439,28 @@ namespace Busy_Light
 
         {
             label7.Visible = false;
-            bool clear = _tokenService.Clear();
+            
             var token = _tokenService.Load();
             if (_restClient.token != null)
             {
                 try
                 {
+                    _restClient.token = token; // <-- important!
+
                     System.Diagnostics.Debug.WriteLine("Existing token found, attempting to refresh...");
-                    // test token
+
                     await _restClient.Get("/restapi/v1.0/account/~/extension/~/presence");
 
-                    // token valid → start websocket immediately
                     await this.StartWebSocket();
                 }
                 catch
                 {
-                    // refresh failed → clear token
                     _tokenService.Clear();
-
+                    loginProc(); // also good to retry login here
                 }
 
             }
-            else
-            {
-                loginProc();
-            }
+            
             comboBox1.Items.Add("Available");
             comboBox1.Items.Add("Unavailable");
             combox2();
@@ -473,9 +472,10 @@ namespace Busy_Light
             foreach (string color in coloroptions)
             {
                 comboBox2.Items.Add(color);
-                
+                comboBox3.Items.Add(color);
+                comboBox4.Items.Add(color);
             }
-            comboBox2.SelectedItem
+            
         }
         private void trackBar1_Scroll(object sender, EventArgs e)
         {
