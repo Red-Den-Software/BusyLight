@@ -679,90 +679,134 @@ namespace Busy_Light
             File.AppendAllText(path,
                 $"{DateTime.Now:yyyy-MM-dd HH:mm:ss} - {message}{Environment.NewLine}");
         }
-        public async void loginProc()
+
+        private static HttpListener _listener;
+        private static bool _isLoggingIn = false;
+
+        public async Task loginProc()
         {
-            await GetAuthorizeUrl(_restClient);
-            // Open system browser
-            var authUrl = await GetAuthorizeUrl(_restClient);
-            System.Diagnostics.Process.Start(new ProcessStartInfo
+            if (_isLoggingIn)
+                return;
+
+            _isLoggingIn = true;
+
+            try
             {
-                FileName = authUrl,
-                UseShellExecute = true
-            });
+                // Get URL ONCE
+                var authUrl = await GetAuthorizeUrl(_restClient);
 
-            // Start local listener
-            var listener = new HttpListener();
-            listener.Prefixes.Add("http://localhost:5000/oauth2callback/");
-            listener.Start();
-
-            var context = await listener.GetContextAsync();
-            var code = context.Request.QueryString["code"];
-
-            var responseString = "<html><body>You may close this window.</body></html>";
-            var buffer = Encoding.UTF8.GetBytes(responseString);
-            context.Response.ContentLength64 = buffer.Length;
-            await context.Response.OutputStream.WriteAsync(buffer);
-            context.Response.OutputStream.Close();
-
-            listener.Stop();
-
-            if (!string.IsNullOrEmpty(code))
-            {
-                try
+                // Open browser
+                System.Diagnostics.Process.Start(new ProcessStartInfo
                 {
-                    Log("Authorization code received.");
+                    FileName = authUrl,
+                    UseShellExecute = true
+                });
 
-                    await _restClient.Authorize(code, RedirectUri);
-                    Log("Authorization successful.");
-
-                    _tokenService.Save(_restClient.token);
-                    Log("Token saved.");
-
-                    MessageBox.Show("Login successful!");
-
-                    await _restClient.Get("/restapi/v1.0/account/~/extension/~/presence");
-                    Log("Presence API call successful.");
-
-                    await StartWebSocket();
-                    Log("WebSocket started.");
-
-                    SerialPortScanner.ManualStatusChangeA();
-                    Log("ManualStatusChangeA triggered.");
-                }
-                catch (Exception ex) {
-                    string logPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "app.log");
-
-                    Log($"ERROR: {ex.Message}");
-                    Log($"STACK: {ex.StackTrace}");
-
-                    var result = MessageBox.Show(
-                        $"An error occurred.\n\nLog file:\n{logPath}\n\n" +
-                        "Click YES to view the log.\n" +
-                        "Click NO to restart the application.",
-                        "Error",
-                        MessageBoxButtons.YesNo,
-                        MessageBoxIcon.Error);
-
-                    if (result == DialogResult.Yes)
+                // Clean up any previous listener
+                if (_listener != null)
+                {
+                    try
                     {
-                        try
-                        {
-                            System.Diagnostics.Process.Start("notepad.exe", logPath);
-                        }
-                        catch
-                        {
-                            MessageBox.Show("Could not open log file.");
-                        }
+                        if (_listener.IsListening)
+                            _listener.Stop();
+
+                        _listener.Close();
                     }
-                    else if (result == DialogResult.No)
+                    catch { }
+                    finally
                     {
-                        Application.Restart();
+                        _listener = null;
                     }
                 }
 
+                _listener = new HttpListener();
+                _listener.Prefixes.Add("http://localhost:5000/oauth2callback/");
+                _listener.Start();
+
+                var context = await _listener.GetContextAsync();
+                var code = context.Request.QueryString["code"];
+
+                // Respond to browser
+                var responseString = "<html><body>You may close this window.</body></html>";
+                var buffer = Encoding.UTF8.GetBytes(responseString);
+                context.Response.ContentLength64 = buffer.Length;
+                await context.Response.OutputStream.WriteAsync(buffer, 0, buffer.Length);
+                context.Response.OutputStream.Close();
+
+                if (!string.IsNullOrEmpty(code))
+                {
+                    try
+                    {
+                        Log("Authorization code received.");
+
+                        await _restClient.Authorize(code, RedirectUri);
+                        Log("Authorization successful.");
+
+                        _tokenService.Save(_restClient.token);
+                        Log("Token saved.");
+
+                        MessageBox.Show("Login successful!");
+
+                        await _restClient.Get("/restapi/v1.0/account/~/extension/~/presence");
+                        Log("Presence API call successful.");
+
+                        await StartWebSocket();
+                        Log("WebSocket started.");
+
+                        SerialPortScanner.ManualStatusChangeA();
+                        Log("ManualStatusChangeA triggered.");
+                    }
+                    catch (Exception ex)
+                    {
+                        string logPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "app.log");
+
+                        Log($"ERROR: {ex.Message}");
+                        Log($"STACK: {ex.StackTrace}");
+
+                        var result = MessageBox.Show(
+                            $"An error occurred.\n\nLog file:\n{logPath}\n\n" +
+                            "Click YES to view the log.\n" +
+                            "Click NO to restart the application.",
+                            "Error",
+                            MessageBoxButtons.YesNo,
+                            MessageBoxIcon.Error);
+
+                        if (result == DialogResult.Yes)
+                        {
+                            try
+                            {
+                                System.Diagnostics.Process.Start("notepad.exe", logPath);
+                            }
+                            catch
+                            {
+                                MessageBox.Show("Could not open log file.");
+                            }
+                        }
+                        else if (result == DialogResult.No)
+                        {
+                            Application.Restart();
+                        }
+                    }
+                }
+            }
+            finally
+            {
+                // ALWAYS release listener (this fixes your error 183)
+                if (_listener != null)
+                {
+                    try
+                    {
+                        _listener.Stop();
+                        _listener.Close();
+                    }
+                    catch { }
+                    _listener = null;
+                }
+
+                _isLoggingIn = false;
             }
         }
-        
+
         public async void btnLogin_Click(object sender, EventArgs e)
         {
 
