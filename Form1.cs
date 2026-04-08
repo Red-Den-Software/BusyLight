@@ -2,6 +2,7 @@ using Microsoft.Win32;
 using RingCentral;
 using RingCentral.Net.AuthorizeUri;
 using RingCentral.Net.WebSocket;
+using Sprache;
 using System.Diagnostics;
 using System.IO.Ports;
 using System.Net;
@@ -411,7 +412,7 @@ namespace Busy_Light
                 {
 
                     await Status(message);
-
+                    Log($"Received presence message: {message}");
                 });
         }
         private async Task SMSWS()
@@ -450,12 +451,15 @@ namespace Busy_Light
                     System.Diagnostics.Debug.WriteLine("Existing token found, attempting to refresh...");
 
                     await _restClient.Get("/restapi/v1.0/account/~/extension/~/presence");
-
+                    Log("Token is valid, presence API call successful.");
                     await this.StartWebSocket();
                 }
-                catch
+                catch (Exception ex)
                 {
+                    Log($"Token refresh failed: {ex.Message}");
                     _tokenService.Clear();
+                    Log(ex.ToString());
+                    Log("Cleared invalid token.");
                     loginProc(); // also good to retry login here
                 }
 
@@ -640,6 +644,16 @@ namespace Busy_Light
             reallyClose = true;
             this.Close();
         }
+        private void Log(string message)
+        {
+           string path = Path.Combine(
+                     Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                     "RedDenSoftware",
+                     "BusyLight", "app.log");
+
+            File.AppendAllText(path,
+                $"{DateTime.Now:yyyy-MM-dd HH:mm:ss} - {message}{Environment.NewLine}");
+        }
         public async void loginProc()
         {
             await GetAuthorizeUrl(_restClient);
@@ -669,18 +683,61 @@ namespace Busy_Light
 
             if (!string.IsNullOrEmpty(code))
             {
-                await _restClient.Authorize(code, RedirectUri);
+                try
+                {
+                    Log("Authorization code received.");
 
-                _tokenService.Save(_restClient.token);
+                    await _restClient.Authorize(code, RedirectUri);
+                    Log("Authorization successful.");
 
-                MessageBox.Show("Login successful!");
+                    _tokenService.Save(_restClient.token);
+                    Log("Token saved.");
 
-                await _restClient.Get("/restapi/v1.0/account/~/extension/~/presence");
+                    MessageBox.Show("Login successful!");
 
-                await StartWebSocket();
-                SerialPortScanner.ManualStatusChangeA();
+                    await _restClient.Get("/restapi/v1.0/account/~/extension/~/presence");
+                    Log("Presence API call successful.");
+
+                    await StartWebSocket();
+                    Log("WebSocket started.");
+
+                    SerialPortScanner.ManualStatusChangeA();
+                    Log("ManualStatusChangeA triggered.");
+                }
+                catch (Exception ex) {
+                    string logPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "app.log");
+
+                    Log($"ERROR: {ex.Message}");
+                    Log($"STACK: {ex.StackTrace}");
+
+                    var result = MessageBox.Show(
+                        $"An error occurred.\n\nLog file:\n{logPath}\n\n" +
+                        "Click YES to view the log.\n" +
+                        "Click NO to restart the application.",
+                        "Error",
+                        MessageBoxButtons.YesNo,
+                        MessageBoxIcon.Error);
+
+                    if (result == DialogResult.Yes)
+                    {
+                        try
+                        {
+                            System.Diagnostics.Process.Start("notepad.exe", logPath);
+                        }
+                        catch
+                        {
+                            MessageBox.Show("Could not open log file.");
+                        }
+                    }
+                    else if (result == DialogResult.No)
+                    {
+                        Application.Restart();
+                    }
+                }
+
             }
         }
+        
         public async void btnLogin_Click(object sender, EventArgs e)
         {
 
