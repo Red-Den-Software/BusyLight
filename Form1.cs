@@ -145,38 +145,72 @@ namespace Busy_Light
                     form.textBox1.BackColor = Color.Red;
                 }
             }
-
+            private static CancellationTokenSource _cts;
             public static void StartComListener(string port, Form1 form)
             {
+                _cts = new CancellationTokenSource();
 
-                System.Diagnostics.Debug.WriteLine("Starting COM port listener...");
-                try
+                Task.Run(async () =>
                 {
-                    _serialPort = new SerialPort(port, 9600, Parity.None, 8, StopBits.One)
+                    while (!_cts.Token.IsCancellationRequested)
                     {
-                        ReadTimeout = 2000,
-                        WriteTimeout = 2000
-                    };
-                    _serialPort.Open();
-                    Thread.Sleep(2000);
-                    System.Diagnostics.Debug.WriteLine($"{port} opened successfully.");
-                    if (_serialPort.IsOpen)
-                    {
-                        System.Diagnostics.Debug.WriteLine($"Listening on {port}...");
+                        try
+                        {
+                            System.Diagnostics.Debug.WriteLine("Attempting to open COM port...");
 
-                        form.textBox1.Text = "Connected";
-                        form.textBox1.BackColor = Color.Green;
+                            _serialPort = new SerialPort(port, 9600, Parity.None, 8, StopBits.One)
+                            {
+                                ReadTimeout = 2000,
+                                WriteTimeout = 2000
+                            };
+
+                            _serialPort.Open();
+                            await Task.Delay(2000); // allow port to stabilize
+
+                            if (_serialPort.IsOpen)
+                            {
+                                System.Diagnostics.Debug.WriteLine($"{port} opened successfully.");
+
+                                form.Invoke((MethodInvoker)(() =>
+                                {
+                                    form.textBox1.Text = "Connected";
+                                    form.textBox1.BackColor = Color.Green;
+                                }));
+
+                                // Subscribe once connected
+                                PresenceChannel.OnTelephonyStatusChanged += OnTelephonyStatusChanged;
+
+                                break; // EXIT LOOP when connected
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            System.Diagnostics.Debug.WriteLine($"COM error: {ex.Message}");
+
+                            form.Invoke((MethodInvoker)(() =>
+                            {
+                                form.textBox1.Text = "Disconnected";
+                                form.textBox1.BackColor = Color.Red;
+                            }));
+                        }
+
+                        // wait before retrying
+                        await Task.Delay(3000);
                     }
-                    // Subscribe to telephony changes
-                    PresenceChannel.OnTelephonyStatusChanged += OnTelephonyStatusChanged;
-                }
-                catch (Exception ex)
+                });
+            }
+            public static void StopComListener()
+            {
+                _cts?.Cancel();
+
+                if (_serialPort != null && _serialPort.IsOpen)
                 {
-                    System.Diagnostics.Debug.WriteLine($"COM error: {ex.Message}");
+                    _serialPort.Close();
                 }
             }
+
             public static bool IsConnected =>
-             _serialPort != null && _serialPort.IsOpen;
+                _serialPort != null && _serialPort.IsOpen;
             public static void SendBrightnessToArduino(int value)
             {
                 try
@@ -304,16 +338,7 @@ namespace Busy_Light
                 }
             }
 
-            public static void StopComListener()
-            {
-                PresenceChannel.OnTelephonyStatusChanged -= OnTelephonyStatusChanged;
-
-                if (_serialPort != null && _serialPort.IsOpen)
-                {
-                    _serialPort.Close();
-                    System.Diagnostics.Debug.WriteLine($"{port} closed.");
-                }
-            }
+            
         }
         public class TokenService
         {
@@ -439,7 +464,7 @@ namespace Busy_Light
         private async void Form1_Load(object sender, EventArgs e)
 
         {
-            label7.Visible = false;
+             label7.Visible = false;
             
             var token = _tokenService.Load();
             if (_restClient.token != null)
