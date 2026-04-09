@@ -3,6 +3,7 @@ using Microsoft.Win32;
 using RingCentral;
 using RingCentral.Net.AuthorizeUri;
 using RingCentral.Net.WebSocket;
+using ServiceStack.Text.Common;
 using Sprache;
 using System.Diagnostics;
 using System.IO.Ports;
@@ -362,6 +363,7 @@ namespace Busy_Light
 
             
         }
+
         public class TokenService
         {
             private readonly string _filePath;
@@ -379,18 +381,29 @@ namespace Busy_Light
 
             public void Save(TokenInfo token)
             {
+                System.Diagnostics.Debug.WriteLine($"Saving token with access_token: {token.access_token}, refresh_token: {token.refresh_token}");
                 var json = JsonSerializer.Serialize(token);
+
                 File.WriteAllText(_filePath, json);
             }
-
+            private JsonElement _refreshToken;
+            public class tokens
+            {
+                public string access_token { get; set; }
+                public string refresh_token { get; set; }
+            }
             public TokenInfo Load()
             {
                 if (!File.Exists(_filePath))
                     return null;
 
                 var json = File.ReadAllText(_filePath);
+                
                 return JsonSerializer.Deserialize<TokenInfo>(json);
             }
+        
+
+
 
             public bool Clear()
             {
