@@ -1,3 +1,4 @@
+using Busy_Light.Device_Events;
 using Microsoft.Win32;
 using RingCentral;
 using RingCentral.Net.AuthorizeUri;
@@ -6,6 +7,7 @@ using Sprache;
 using System.Diagnostics;
 using System.IO.Ports;
 using System.Net;
+using System.Runtime.InteropServices;
 using System.Security.AccessControl;
 using System.Text;
 using System.Text.Json;
@@ -17,6 +19,7 @@ namespace Busy_Light
     {
         private readonly RestClient _restClient;
         private string RedirectUri = Environment.GetEnvironmentVariable("REDIRECT_URI");
+        private DeviceWatcher watcher;
         public class UserSettings
         {
             public string Theme { get; set; }
@@ -26,6 +29,8 @@ namespace Busy_Light
             public string offcall_color { get; set; }
             public string msgrecieved_color { get; set; }
         }
+
+       
         public class SettingsService
         {
             private readonly string _filePath;
@@ -114,7 +119,7 @@ namespace Busy_Light
 
             return null;
         }
-
+        
         public string textBox1_Text
         {
             get { return textBox1.Text; }
@@ -128,28 +133,28 @@ namespace Busy_Light
 
 
 
-            public static void ifport(Form1 form)
-            {
-                if (IsConnected)
-                    return;
-                port = FindDevicePort();
-                if (port != null)
-                {
-                    StartComListener(port, form);
-                }
-                else
-                {
-                    Debug.WriteLine("Device not found.");
+            //public static void ifport(Form1 form)
+            //{
+            //    if (IsConnected)
+            //        return;
+            //    port = FindDevicePort();
+            //    if (port != null)
+            //    {
+            //        StartComListener(port, form);
+            //    }
+            //    else
+            //    {
+            //        Debug.WriteLine("Device not found.");
 
-                    form.textBox1.Text = "Disconnected";
-                    form.textBox1.BackColor = Color.Red;
-                }
-            }
+            //        form.textBox1.Text = "Disconnected";
+            //        form.textBox1.BackColor = Color.Red;
+            //    }
+            //}
             private static CancellationTokenSource _cts;
             public static void StartComListener(string port, Form1 form)
             {
                 _cts = new CancellationTokenSource();
-
+                
                 Task.Run(async () =>
                 {
                     while (!_cts.Token.IsCancellationRequested)
@@ -166,7 +171,7 @@ namespace Busy_Light
 
                             _serialPort.Open();
                             await Task.Delay(2000); // allow port to stabilize
-
+                            
                             if (_serialPort.IsOpen)
                             {
                                 System.Diagnostics.Debug.WriteLine($"{port} opened successfully.");
@@ -249,9 +254,9 @@ namespace Busy_Light
                     
                     if (_serialPort != null && _serialPort.IsOpen)
                     {
-                        //byte[] command = { 0x02 };
-                        string command = oncall_color;
-                        _serialPort.NewLine = command;
+                        byte[] command = { 0x02 };
+                        _serialPort.Write(command, 0, 1);
+                        //_serialPort.NewLine = command;
                         System.Diagnostics.Debug.WriteLine($"Port open: {_serialPort?.IsOpen}");
 
                         Debug.WriteLine($"Sent to Arduino: 0x02, {command[0]}");
@@ -386,16 +391,38 @@ namespace Busy_Light
             MinimizeToTray();
 
         }
+        private void TryConnectExistingDevice()
+        {
+            var ports = SerialPort.GetPortNames();
 
+            foreach (var port in ports)
+            {
+                // Optional: filter if needed
+                SerialPortScanner.StartComListener(port, this);
+                break; // remove if you want to try all
+            }
+        }
         public Form1(RestClient restClient, TokenService tokenService, string redirectUri)
         {
+            //watcher = new DeviceWatcher();
+            
+            //watcher.DeviceInserted += (s, port) =>
+            //{
+            //    SerialPortScanner.StartComListener(port, this);
+            //};
 
+            //watcher.DeviceRemoved += (s, port) =>
+            //{
+            //    SerialPortScanner.StopComListener();
+            //};
+
+            //TryConnectExistingDevice();
             this.redirectUri = redirectUri;
             _settingsService = new SettingsService();
             InitializeComponent();
             _restClient = restClient;
             _tokenService = tokenService;
-            SerialPortScanner.ifport(this);
+            
             trackBar1.Scroll += trackBar1_Scroll;
             trackBar1.Value = _settingsService.Settings.Brightness; // start at max (100%)
             checkBox1.Checked = _settingsService.Settings.StartWithWindows;
@@ -461,11 +488,12 @@ namespace Busy_Light
 
 
         }
-
+        
         private async void Form1_Load(object sender, EventArgs e)
 
         {
-             label7.Visible = false;
+            watcher = new DeviceWatcher();
+            label7.Visible = false;
             
             var token = _tokenService.Load();
             if (_restClient.token != null)
@@ -479,6 +507,7 @@ namespace Busy_Light
                     await _restClient.Get("/restapi/v1.0/account/~/extension/~/presence");
                     Log("Token is valid, presence API call successful.");
                     await this.StartWebSocket();
+
                 }
                 catch (Exception ex)
                 {
@@ -486,7 +515,7 @@ namespace Busy_Light
                     _tokenService.Clear();
                     Log(ex.ToString());
                     Log("Cleared invalid token.");
-                    loginProc(); // also good to retry login here
+                    await loginProc(); // also good to retry login here
                 }
 
             }
@@ -695,7 +724,7 @@ namespace Busy_Light
             {
                 // Get URL ONCE
                 var authUrl = await GetAuthorizeUrl(_restClient);
-
+                System.Diagnostics.Debug.WriteLine($"Auth URL: {authUrl}"); // Log the URL for debugging
                 // Open browser
                 System.Diagnostics.Process.Start(new ProcessStartInfo
                 {
@@ -812,7 +841,7 @@ namespace Busy_Light
         {
 
 
-            loginProc();
+            await loginProc();
         }
 
         private void button1_Click(object sender, EventArgs e)
