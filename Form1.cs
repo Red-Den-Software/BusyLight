@@ -125,12 +125,25 @@ namespace Busy_Light
             get { return textBox1.Text; }
             set { textBox1.Text = value; }
         }
-
+        public void UpdateConnectionStatus(bool connected)
+        {
+            if (connected)
+            {
+                textBox1.Text = "Connected";
+                textBox1.BackColor = Color.Green;
+            }
+            else
+            {
+                textBox1.Text = "Disconnected";
+                textBox1.BackColor = Color.Red;
+            }
+        }
         public class SerialPortScanner
         {
+            
             public static SerialPort _serialPort;
             static string port = null;
-
+           
 
 
             //public static void ifport(Form1 form)
@@ -151,16 +164,19 @@ namespace Busy_Light
             //    }
             //}
             private static CancellationTokenSource _cts;
+            
             public static void StartComListener(string port, Form1 form)
             {
                 _cts = new CancellationTokenSource();
                 
                 Task.Run(async () =>
                 {
+                    
                     while (!_cts.Token.IsCancellationRequested)
                     {
                         try
                         {
+                            
                             System.Diagnostics.Debug.WriteLine("Attempting to open COM port...");
 
                             _serialPort = new SerialPort(port, 9600, Parity.None, 8, StopBits.One)
@@ -404,19 +420,8 @@ namespace Busy_Light
         }
         public Form1(RestClient restClient, TokenService tokenService, string redirectUri)
         {
-            //watcher = new DeviceWatcher();
             
-            //watcher.DeviceInserted += (s, port) =>
-            //{
-            //    SerialPortScanner.StartComListener(port, this);
-            //};
-
-            //watcher.DeviceRemoved += (s, port) =>
-            //{
-            //    SerialPortScanner.StopComListener();
-            //};
-
-            //TryConnectExistingDevice();
+            TryConnectExistingDevice();
             this.redirectUri = redirectUri;
             _settingsService = new SettingsService();
             InitializeComponent();
