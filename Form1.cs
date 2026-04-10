@@ -387,21 +387,26 @@ namespace Busy_Light
                 File.WriteAllText(_filePath, json);
             }
             private JsonElement _refreshToken;
+
+            public static TokenInfo refresh_token { get; internal set; }
+
             public class tokens
             {
                 public string access_token { get; set; }
                 public string refresh_token { get; set; }
             }
-            public TokenInfo Load()
+            public tokens Load()
             {
                 if (!File.Exists(_filePath))
                     return null;
 
                 var json = File.ReadAllText(_filePath);
-                
-                return JsonSerializer.Deserialize<TokenInfo>(json);
+
+                return JsonSerializer.Deserialize<tokens>(json);
+
+
             }
-        
+           
 
 
 
@@ -518,7 +523,7 @@ namespace Busy_Light
             {
                 try
                 {
-                    _restClient.token = token; // <-- important!
+                    _restClient.token = TokenService.refresh_token; // <-- important!
 
                     System.Diagnostics.Debug.WriteLine("Existing token found, attempting to refresh...");
 

@@ -35,21 +35,23 @@ namespace Busy_Light
         [STAThread]
         static void Main()
         {
+            
             ApplicationConfiguration.Initialize();
-
+           
             // load .env variables
             var (clientId, clientSecret, serverUrl, redirectUri) = LoadEnvVariables();
-
+            
             // initialize RestClient
             var restClient = new RestClient(clientId, clientSecret, serverUrl);
-
+            
             var tokenService = new Form1.TokenService();
 
             var savedToken = tokenService.Load();
-
+            var refreshToken = savedToken.refresh_token;
             if (savedToken != null)
             {
-                restClient.token = savedToken; // capital T
+                
+                restClient.token = Form1.TokenService.refresh_token; // capital T
             }
             Application.Run(new Form1(restClient, tokenService, redirectUri));
 
