@@ -47,7 +47,7 @@ namespace Busy_Light
             var tokenService = new Form1.TokenService();
 
             var savedToken = tokenService.Load();
-            var refreshToken = savedToken.refresh_token;
+            
             if (savedToken != null)
             {
                 
