@@ -784,7 +784,7 @@ namespace Busy_Light
                 var buffer = Encoding.UTF8.GetBytes(responseString);
                 context.Response.ContentLength64 = buffer.Length;
                 await context.Response.OutputStream.WriteAsync(buffer, 0, buffer.Length);
-                context.Response.OutputStream.Close();
+                context.Response.Close();
 
                 if (!string.IsNullOrEmpty(code))
                 {
