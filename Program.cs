@@ -44,15 +44,8 @@ namespace Busy_Light
             // initialize RestClient
             var restClient = new RestClient(clientId, clientSecret, serverUrl);
             
-            var tokenService = new Form1.TokenService();
+            var tokenService = new Busy_Light.TokenService();
 
-            var savedToken = tokenService.Load();
-            
-            if (savedToken != null)
-            {
-                
-                restClient.token = Form1.TokenService.refresh_token; // capital T
-            }
             Application.Run(new Form1(restClient, tokenService, redirectUri));
 
         }
