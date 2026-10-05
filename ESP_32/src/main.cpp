@@ -17,8 +17,9 @@ u_int32_t green = pixels.Color(0,255,0);
 u_int32_t red = pixels.Color(255,0,0);
 u_int32_t blue = pixels.Color(0,0,255);
 u_int32_t yellow = pixels.Color(255,255,0);
+uint8_t data[10] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
 unsigned long previousMillis = 0; // variable to store the last time the function ran
-const long interval = 1000;       // interval at which to run the function (milliseconds)
+const long interval = 5000;       // interval at which to run the function (milliseconds)
 #define DELAYVAL 500 // Time (in milliseconds) to pause between pixels
 int runCount = 0;
 const int maxRuns = 2;
@@ -75,7 +76,12 @@ void loop() {
    // Only read if a byte is available
   if (Serial.available() > 0) {
     byte b = Serial.read();
+    unsigned long currentMillis = millis();
 
+    if (currentMillis - previousMillis >= interval) {
+    previousMillis = currentMillis;
+    Serial.write(0x3F);
+    }
     if (b == 0x55) {
       Serial.write(0xAA);  // Probe response
     }
@@ -101,9 +107,5 @@ void loop() {
 
   }
 }
-
-// Function to send XOFF and XON if the Arduino's input buffer gets full
-// This would be implemented as part of the receiving logic to tell the
-// other device to stop/start sending to the Arduino.
 
 

@@ -14,95 +14,140 @@ namespace Busy_Light
     public class main
     {
         public static SerialPort _serialPort;
-        static string port = null;
+        public static string port = null;
         public static CancellationTokenSource _cts;
+    }
+    public class SerialHeartBeatManager : IDisposable
+    {
+        private SerialPort _serialPort;
+        
+        private readonly object _portLock = new object();
+        private CancellationTokenSource _cts;
+        private Task _readLoopTask;
+        private DateTime _lastHeartbeatTime = DateTime.MinValue;
+
+        public event Action<byte> OnHeartbeatReceived;
+        public event Action<bool> OnConnectionStatusChanged;
+        public  SerialHeartBeatManager(string port, int baudRate = 9600)
+        {
+            _serialPort = new SerialPort(port, baudRate, Parity.None, 8, StopBits.One)
+            {
+                ReadTimeout = 2000,
+                WriteTimeout = 2000
+            };
+            
+        }
+        public void Start()
+        {
+          
+            _serialPort.Open();
+            _cts = new CancellationTokenSource();
+            _lastHeartbeatTime = DateTime.Now;
+
+            _readLoopTask = Task.Run(() => ReadLoop(_cts.Token));
+        }
+        private void ReadLoop(CancellationToken token)
+        {
+            while (!token.IsCancellationRequested && _serialPort.IsOpen)
+            {
+                try
+                {
+                    if (_serialPort.BytesToRead > 0)
+                    {
+                        byte data = (byte)_serialPort.ReadByte();
+
+                        ProcessIncomingData(data);
+                    }
+
+                    bool isAlive =
+                        (DateTime.Now - _lastHeartbeatTime).TotalSeconds < 4;
+
+                    Thread.Sleep(50);
+                }
+                catch (TimeoutException)
+                {
+                    // No data received within ReadTimeout.
+                }
+                catch (Exception ex)
+                {
+                    if (!token.IsCancellationRequested)
+                    {
+                        Debug.WriteLine($"Serial error: {ex.Message}");
+                    }
+                }
+            }
+        }
+        private void ProcessIncomingData(byte data)
+        {
+            const byte HEARTBEAT_BYTE = 0x3F;
+            // Adjust "HEARTBEAT" to match your device's actual heartbeat protocol string/byte
+            if (data == HEARTBEAT_BYTE) // Replace 0x01 with your actual heartbeat byte
+            {
+                _lastHeartbeatTime = DateTime.Now;
+                OnHeartbeatReceived?.Invoke(data);
+            }
+        }
+
+        public void SendData(byte[] message)
+        {
+            if (_serialPort == null || !_serialPort.IsOpen)
+            {
+                MessageBox.Show($"Serial port is not open. Please check the connection and try again. Serial Port: {_serialPort?.PortName ?? "Unknown"}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                throw new InvalidOperationException("Serial port is not open.");
+            }
+
+            lock (_portLock)
+            {
+                _serialPort.Write(message, 0, message.Length);
+            }
+        }
+
+        public void Dispose()
+        {
+            _cts?.Cancel();
+            _readLoopTask?.Wait(1000);
+            _cts?.Dispose();
+            if (_serialPort != null && _serialPort.IsOpen)
+            {
+                _serialPort.Close();
+                _serialPort.Dispose();
+            }
+        }
+
     }
     public class ComPortListener
     {
 
-        public static SerialPort _serialPort;
-      
+        private static SerialPort _serialPort;
+        public static SerialHeartBeatManager heartbeatManager;
         public static bool ComPortHardwareIDFinder()
         {
             string query = "SELECT * FROM Win32_SerialPort";
             ManagementObjectSearcher searcher = new ManagementObjectSearcher(query);
+
             foreach (ManagementObject port in searcher.Get())
             {
                 string deviceId = port["DeviceID"]?.ToString();
                 string pnpDeviceId = port["PNPDeviceID"]?.ToString();
                 string description = port["Description"]?.ToString();
+
                 if (pnpDeviceId != null && pnpDeviceId.Contains("VID_303A&PID_1001"))
                 {
-                    System.Diagnostics.Debug.WriteLine($"Found COM port: {deviceId} - {description}");
+                    Debug.WriteLine($"Found COM port: {deviceId} - {description}");
 
-                    //deviceId = hardwareID;
+                    main.port = deviceId;
+
+                    heartbeatManager = new SerialHeartBeatManager(main.port);
+                    heartbeatManager.Start();
+
                     return true;
                 }
             }
-            return false; 
 
+            return false;
         }
-        public static void StartComPortListener(string port)
-        {
-            _serialPort = new SerialPort();
-            string[] ports = SerialPort.GetPortNames();
-            if (ports.Length == 0)
-            {
-                System.Diagnostics.Debug.WriteLine("No COM ports found.");
-                return;
-            }
-            
-        }
-        public static void StartComListener(string port, Form1 form)
-        {
-            
-            Form1 form1 = form;
-            main._cts = new CancellationTokenSource();
 
-            Task.Run(async () =>
-            {
-
-                while (!main._cts.Token.IsCancellationRequested)
-                {
-                    try
-                    {
-
-                        System.Diagnostics.Debug.WriteLine("Attempting to open COM port...");
-
-                        _serialPort = new SerialPort(port, 9600, Parity.None, 8, StopBits.One)
-                        {
-                            ReadTimeout = 2000,
-                            WriteTimeout = 2000
-                        };
-
-                        _serialPort.Open();
-                        await Task.Delay(2000); // allow port to stabilize
-
-                        if (_serialPort.IsOpen)
-                        {
-                            System.Diagnostics.Debug.WriteLine($"{port} opened successfully.");
-                            byte[] available = { 0x01 };
-                            _serialPort.Write(available, 0, 1);
-                           form1.UpdateConnectionStatus();
-
-                            // Subscribe once connected
-                            PresenceChannel.OnTelephonyStatusChanged += OnTelephonyStatusChanged;
-
-                            break; // EXIT LOOP when connected
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        System.Diagnostics.Debug.WriteLine($"COM error: {ex.Message}");
-
-                       form1.UpdateConnectionStatus(); break;
-                    }
-
-                    // wait before retrying
-                    await Task.Delay(3000);
-                }
-            });
-        }
+        
         
 
         public static bool IsConnected =>
@@ -115,8 +160,9 @@ namespace Busy_Light
                 {
                     byte command = 0x03;
                     byte brightness = (byte)value;
-                    _serialPort.Write(new byte[] { command, brightness }, 0, 2);
-                    _serialPort.BaseStream.Flush();
+                    byte[] data = { command, brightness };
+                    ComPortListener.heartbeatManager.SendData(data);
+                    
 
                     Debug.WriteLine($"Sent to Arduino: 0x03, {brightness}");
                 }
@@ -181,7 +227,7 @@ namespace Busy_Light
     }
     public class  ComPortFunctions
     {
-        
+       
         public static async Task CloseComPortSession()
         {
             main._cts?.Cancel();
@@ -191,15 +237,22 @@ namespace Busy_Light
                 main._serialPort.Close();
             }
         }
+        
         public static void ManualStatusChange(string status)
         {
-           if (status == "Unavailable")
+           
+            if (status == "Unavailable")
             {
-                SendStatusToESP(ESPStatus.Unavailable);
+                byte[] unavailable = { 0x02 };
+               
+                ComPortListener.heartbeatManager.SendData(unavailable);
+              
+                MessageBox.Show($"Sent Unavailable to Arduino" , "Status Change", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
             else if (status == "Available")
             {
-                SendStatusToESP(ESPStatus.Available);
+                byte[] available = { 0x01 };
+                ComPortListener.heartbeatManager.SendData(available);
             }
 
             

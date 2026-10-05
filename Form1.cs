@@ -131,11 +131,12 @@ namespace Busy_Light
 
 
         }
-        
+        private SerialHeartBeatManager heartbeatManager;
         private async void Form1_Load(object sender, EventArgs e)
 
         {
             
+          
             watcher = new DeviceWatcher();
             label7.Visible = false;
             System.Diagnostics.Debug.WriteLine("InFormLoad");
@@ -247,8 +248,9 @@ namespace Busy_Light
             {
                 if (ComPortListener.IsConnected)
                 {
-                    ComPortListener._serialPort.Write(new byte[] { command }, 0, 1);
-                    ComPortListener._serialPort.BaseStream.Flush();
+                    
+                    byte[] commandHolder = new byte[] { command };
+                    heartbeatManager.SendData(commandHolder);
                     Debug.WriteLine($"Sent color command: {command:X2} for {selectedColor}");
                 }
                 else
@@ -491,7 +493,7 @@ namespace Busy_Light
 
         private void button1_Click(object sender, EventArgs e)
         {
-            ComPortListener serialPortScanner = new ComPortListener();
+            //ComPortListener serialPortScanner = new ComPortListener();
             if (comboBox1.SelectedItem == null)
             {
                 MessageBox.Show("Please select an option first.");
@@ -501,11 +503,11 @@ namespace Busy_Light
             switch (comboBox1.SelectedItem.ToString())
             {
                 case "Available":
-                    ComPortFunctions.SendStatusToESP(ComPortFunctions.ESPStatus.Available);
+                   ComPortFunctions.ManualStatusChange("Available");
                     break;
 
                 case "Unavailable":
-                    ComPortFunctions.SendStatusToESP(ComPortFunctions.ESPStatus.Unavailable);
+                    ComPortFunctions.ManualStatusChange("Unavailable");
                     break;
             }
         }
@@ -514,10 +516,7 @@ namespace Busy_Light
         {
 
         }
-        private async void CloseComPortSession()
-        {
-            await ComPortFunctions.CloseComPortSession();
-        }
+        
         private void Form1_FormClosing(object sender, FormClosingEventArgs e)
         {
             if (!reallyClose)
@@ -530,7 +529,8 @@ namespace Busy_Light
             {
                 // Actually close
                 _settingsService.Save();
-                CloseComPortSession();
+                
+                heartbeatManager.Dispose();
 
                 if (trayIcon != null)
                 {
