@@ -21,7 +21,12 @@ namespace Busy_Light
         private readonly RestClient _restClient;
         private string RedirectUri = Environment.GetEnvironmentVariable("REDIRECT_URI");
         private DeviceWatcher watcher;
-       
+        private DateTime _lastHeartbeatTime = DateTime.MinValue;
+
+        private const int HEARTBEAT_TIMEOUT_SECONDS = 10;
+
+        private System.Threading.Timer? _heartbeatTimer;
+
         public static event Action<byte> OnBrightnessReceived;
         
         
@@ -135,8 +140,10 @@ namespace Busy_Light
         private async void Form1_Load(object sender, EventArgs e)
 
         {
-            
-          
+            Debug.WriteLine("InFormLoad");
+
+           
+
             watcher = new DeviceWatcher();
             label7.Visible = false;
             System.Diagnostics.Debug.WriteLine("InFormLoad");
@@ -335,6 +342,8 @@ namespace Busy_Light
         {
             // Allow the form to actually close
             reallyClose = true;
+            _heartbeatTimer?.Dispose();
+            _heartbeatTimer = null;
             await ComPortFunctions.CloseComPortSession();
             this.Close();
         }

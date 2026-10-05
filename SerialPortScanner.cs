@@ -21,124 +21,340 @@ namespace Busy_Light
     public class SerialHeartBeatManager : IDisposable
     {
         private SerialPort _serialPort;
-        private Form1 form1;
         private readonly object _portLock = new object();
-        private CancellationTokenSource _cts;
-        private Task _readLoopTask;
+
+        private CancellationTokenSource? _cts;
+        private Task? _readLoopTask;
+
         private DateTime _lastHeartbeatTime = DateTime.MinValue;
 
-        public event Action<byte> OnHeartbeatReceived;
-        public event Action<bool> OnConnectionStatusChanged;
-        public  SerialHeartBeatManager(string port, int baudRate = 9600)
+        private readonly string _portName;
+        private readonly int _baudRate;
+
+        private const int HEARTBEAT_TIMEOUT_SECONDS = 10;
+        private const int RECONNECT_DELAY_MS = 2000;
+
+        private System.Threading.Timer? _heartbeatTimer;
+
+        public event Action<byte>? OnHeartbeatReceived;
+        public event Action<bool>? OnConnectionStatusChanged;
+
+
+        public SerialHeartBeatManager(string port, int baudRate = 9600)
         {
-            _serialPort = new SerialPort(port, baudRate, Parity.None, 8, StopBits.One)
+            _portName = port;
+            _baudRate = baudRate;
+
+            _serialPort = new SerialPort(
+                _portName,
+                _baudRate,
+                Parity.None,
+                8,
+                StopBits.One)
             {
                 ReadTimeout = 2000,
                 WriteTimeout = 2000
             };
-            
+
+            _heartbeatTimer = new System.Threading.Timer(
+                CheckHeartbeat,
+                null,
+                1000,
+                1000);
         }
+
+
         public void Start()
         {
-            try
-            {
-                if (!_serialPort.IsOpen)
-                {
-                    _serialPort.Open();
-                    Debug.WriteLine($"Serial port {_serialPort.PortName} opened.");
-                    _cts = new CancellationTokenSource();
-                    _lastHeartbeatTime = DateTime.Now;
-                   
-                    _readLoopTask = Task.Run(() => ReadLoop(_cts.Token));
-                }
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"Failed to open serial port {_serialPort.PortName}: {ex.Message}");
-                MessageBox.Show($"Failed to open serial port {_serialPort.PortName}: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
+            if (_cts != null && !_cts.IsCancellationRequested)
+                return;
+
+            _cts = new CancellationTokenSource();
+
+            _readLoopTask = Task.Run(
+                () => ConnectionLoopAsync(_cts.Token));
         }
 
-        private void ReadLoop(CancellationToken token)
-        {
-            Debug.WriteLine("=== READ LOOP STARTED ===");
 
-            while (!token.IsCancellationRequested && _serialPort.IsOpen)
+        private async Task ConnectionLoopAsync(CancellationToken token)
+        {
+            while (!token.IsCancellationRequested)
             {
                 try
                 {
-                    Debug.WriteLine($"Loop | Open: {_serialPort.IsOpen} | Bytes: {_serialPort.BytesToRead}");
+                    // Port is not open - try to open it
+                    if (!_serialPort.IsOpen)
+                    {
+                        TryOpenPort();
+
+                        if (!_serialPort.IsOpen)
+                        {
+                            await Task.Delay(RECONNECT_DELAY_MS, token);
+                            continue;
+                        }
+                    }
+
+                    // Read data while port is open
+                    await ReadLoopAsync(token);
+                }
+                catch (OperationCanceledException)
+                {
+                    break;
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine(
+                        $"Serial connection error: {ex.Message}");
+
+                    SetDisconnected();
+
+                    ClosePort();
+
+                    try
+                    {
+                        await Task.Delay(RECONNECT_DELAY_MS, token);
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        break;
+                    }
+                }
+            }
+        }
+
+
+        private void TryOpenPort()
+        {
+            lock (_portLock)
+            {
+                try
+                {
+                    if (_serialPort.IsOpen)
+                        return;
+
+                    // COM port may have disappeared and returned.
+                    // Recreate the SerialPort object before opening.
+                    _serialPort.Dispose();
+
+                    _serialPort = new SerialPort(
+                        _portName,
+                        _baudRate,
+                        Parity.None,
+                        8,
+                        StopBits.One)
+                    {
+                        ReadTimeout = 2000,
+                        WriteTimeout = 2000
+                    };
+
+                    _serialPort.Open();
+
+                    Debug.WriteLine(
+                        $"Serial port {_portName} opened.");
+
+                    // Do NOT mark IsConnected true here.
+                    // We need the heartbeat to prove the ESP32 is alive.
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine(
+                        $"Unable to open {_portName}: {ex.Message}");
+
+                    try
+                    {
+                        _serialPort.Dispose();
+                    }
+                    catch
+                    {
+                    }
+                }
+            }
+        }
+
+
+        private async Task ReadLoopAsync(CancellationToken token)
+        {
+            while (!token.IsCancellationRequested)
+            {
+                try
+                {
+                    if (!_serialPort.IsOpen)
+                    {
+                        SetDisconnected();
+                        return;
+                    }
 
                     if (_serialPort.BytesToRead > 0)
                     {
                         int data = _serialPort.ReadByte();
 
-                        Debug.WriteLine($"RECEIVED: 0x{data:X2}");
+                        if (data >= 0)
+                        {
+                            Debug.WriteLine(
+                                $"RECEIVED: 0x{data:X2}");
 
-                        ProcessIncomingData((byte)data);
+                            ProcessIncomingData((byte)data);
+                        }
                     }
-
-                    Thread.Sleep(10);
+                    else
+                    {
+                        await Task.Delay(10, token);
+                    }
+                }
+                catch (OperationCanceledException)
+                {
+                    return;
                 }
                 catch (Exception ex)
                 {
-                    Debug.WriteLine($"SERIAL ERROR: {ex}");
+                    Debug.WriteLine(
+                        $"SERIAL ERROR: {ex.Message}");
 
-                    if (!token.IsCancellationRequested)
-                        ComPortListener.IsConnected = false;
+                    SetDisconnected();
+
+                    ClosePort();
+
+                    return;
                 }
             }
-
-            Debug.WriteLine("=== READ LOOP EXITED ===");
         }
+
+
         private void ProcessIncomingData(byte data)
         {
             const byte HEARTBEAT_BYTE = 0x3F;
 
-            Debug.WriteLine($"Received byte: 0x{data:X2}");
+            Debug.WriteLine(
+                $"Received byte: 0x{data:X2}");
 
-            if (data == HEARTBEAT_BYTE)
+            // Ignore everything except heartbeat
+            if (data != HEARTBEAT_BYTE)
+                return;
+
+            // Heartbeat received
+            _lastHeartbeatTime = DateTime.UtcNow;
+
+            Debug.WriteLine(
+                "ESP32 heartbeat detected.");
+
+            // This is the important reconnect detection
+            if (!ComPortListener.IsConnected)
             {
-                _lastHeartbeatTime = DateTime.Now;
-
-                if (!ComPortListener.IsConnected)
-                {
-                    Debug.WriteLine("Arduino connected - heartbeat detected.");
-                }
+                Debug.WriteLine(
+                    "ESP32 RECONNECTED - heartbeat detected.");
 
                 ComPortListener.IsConnected = true;
 
-                OnHeartbeatReceived?.Invoke(data);
+                OnConnectionStatusChanged?.Invoke(true);
+            }
+
+            OnHeartbeatReceived?.Invoke(data);
+        }
+
+
+        public void CheckHeartbeat(object? state)
+        {
+            if (_lastHeartbeatTime == DateTime.MinValue)
+                return;
+
+            var elapsed =
+                DateTime.UtcNow - _lastHeartbeatTime;
+
+            if (elapsed.TotalSeconds >
+                HEARTBEAT_TIMEOUT_SECONDS)
+            {
+                if (ComPortListener.IsConnected)
+                {
+                    Debug.WriteLine(
+                        $"ESP32 HEARTBEAT LOST. " +
+                        $"Last heartbeat: {elapsed.TotalSeconds:F1}s ago.");
+
+                    SetDisconnected();
+                }
             }
         }
+
+
+        private void SetDisconnected()
+        {
+            if (ComPortListener.IsConnected)
+            {
+                Debug.WriteLine(
+                    "ESP32 is disconnected.");
+
+                ComPortListener.IsConnected = false;
+
+                OnConnectionStatusChanged?.Invoke(false);
+            }
+        }
+
+
+        private void ClosePort()
+        {
+            lock (_portLock)
+            {
+                try
+                {
+                    if (_serialPort.IsOpen)
+                        _serialPort.Close();
+                }
+                catch
+                {
+                }
+            }
+        }
+
 
         public void SendData(byte[] message)
         {
-            if (_serialPort == null || !_serialPort.IsOpen)
-            {
-                MessageBox.Show($"Serial port is not open. Please check the connection and try again. Serial Port: {_serialPort?.PortName ?? "Unknown"}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                throw new InvalidOperationException("Serial port is not open.");
-            }
-
             lock (_portLock)
             {
-                _serialPort.Write(message, 0, message.Length);
+                if (_serialPort == null ||
+                    !_serialPort.IsOpen)
+                {
+                    throw new InvalidOperationException(
+                        $"Serial port {_portName} is not open.");
+                }
+
+                _serialPort.Write(
+                    message,
+                    0,
+                    message.Length);
             }
         }
+
 
         public void Dispose()
         {
+            _heartbeatTimer?.Dispose();
+            _heartbeatTimer = null;
+
             _cts?.Cancel();
-            _readLoopTask?.Wait(1000);
-            _cts?.Dispose();
-            if (_serialPort != null && _serialPort.IsOpen)
+
+            try
             {
-                _serialPort.Close();
+                _readLoopTask?.Wait(1000);
+            }
+            catch
+            {
+            }
+
+            _cts?.Dispose();
+            _cts = null;
+
+            ClosePort();
+
+            try
+            {
                 _serialPort.Dispose();
             }
+            catch
+            {
+            }
         }
-
     }
+
+
     public class ComPortListener
     {
 
