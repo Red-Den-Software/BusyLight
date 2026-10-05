@@ -74,6 +74,7 @@ void spiralLight(){
 }
 void loop() {
    // Only read if a byte is available
+
   if (Serial.available() > 0) {
     byte b = Serial.read();
     unsigned long currentMillis = millis();
