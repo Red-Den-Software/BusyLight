@@ -36,12 +36,22 @@ void setup() {
   pixels.show();
 
 }
+void solidblue(){
+  pixels.fill(0,0,255);
+  pixels.show();
+}
 void solidred(){
   pixels.fill(red,0,255);
   pixels.show();
 }
-
-
+void solidyellow(){
+  pixels.fill(255, 255, 0);
+  pixels.show();
+}
+void solidpurple(){
+  pixels.fill(128, 0, 128);
+  pixels.show();
+}
 void clear(){
   pixels.fill(0,0,0);
   pixels.show();
@@ -94,6 +104,15 @@ void loop() {
     }
     else if(b == 0x04){
         spiralLight();
+    }
+    else if(b == 0x05){
+      solidblue();
+    }
+    else if(b == 0x06){
+      solidyellow();
+    }
+    else if(b == 0x07){
+      solidpurple();
     }
     else if (b == 0x03) {
   while (Serial.available() == 0);
