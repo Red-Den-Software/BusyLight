@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO.Ports;
+using System.Management;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -20,7 +21,38 @@ namespace Busy_Light
     {
 
         public static SerialPort _serialPort;
+      
+        public static bool ComPortHardwareIDFinder()
+        {
+            string query = "SELECT * FROM Win32_SerialPort";
+            ManagementObjectSearcher searcher = new ManagementObjectSearcher(query);
+            foreach (ManagementObject port in searcher.Get())
+            {
+                string deviceId = port["DeviceID"]?.ToString();
+                string pnpDeviceId = port["PNPDeviceID"]?.ToString();
+                string description = port["Description"]?.ToString();
+                if (pnpDeviceId != null && pnpDeviceId.Contains("VID_303A&PID_1001"))
+                {
+                    System.Diagnostics.Debug.WriteLine($"Found COM port: {deviceId} - {description}");
 
+                    //deviceId = hardwareID;
+                    return true;
+                }
+            }
+            return false; 
+
+        }
+        public static void StartComPortListener(string port)
+        {
+            _serialPort = new SerialPort();
+            string[] ports = SerialPort.GetPortNames();
+            if (ports.Length == 0)
+            {
+                System.Diagnostics.Debug.WriteLine("No COM ports found.");
+                return;
+            }
+            
+        }
         public static void StartComListener(string port, Form1 form)
         {
             

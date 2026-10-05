@@ -23,42 +23,7 @@ namespace Busy_Light
         private DeviceWatcher watcher;
        
         public static event Action<byte> OnBrightnessReceived;
-        public static string FindDevicePort()
-        {
-            foreach (string port in SerialPort.GetPortNames())
-            {
-                try
-                {
-                    using (SerialPort sp = new SerialPort(port, 9600))
-                    {
-                        sp.ReadTimeout = 500;
-                        sp.WriteTimeout = 500;
-
-                        sp.Open();
-                        Thread.Sleep(300); // Allow ESP reset
-
-                        sp.DiscardInBuffer();
-
-                        sp.Write(new byte[] { 0x55 }, 0, 1);
-                        Thread.Sleep(200);
-
-                        int response = sp.ReadByte();
-
-                        if (response == 0xAA)
-                        {
-                            sp.Close();
-                            return port; // ✅ Correct device
-                        }
-                    }
-                }
-                catch
-                {
-                    // Ignore invalid ports
-                }
-            }
-
-            return null;
-        }
+        
         
         public string textBox1_Text
         {
@@ -91,21 +56,11 @@ namespace Busy_Light
             MinimizeToTray();
 
         }
-        private void TryConnectExistingDevice()
-        {
-            var ports = SerialPort.GetPortNames();
-
-            foreach (var port in ports)
-            {
-                // Optional: filter if needed
-                ComPortListener.StartComListener(port, this);
-                break; // remove if you want to try all
-            }
-        }
+       
         public Form1(RestClient restClient, TokenService tokenService, string redirectUri)
         {
             
-            TryConnectExistingDevice();
+          ComPortListener.ComPortHardwareIDFinder();
             this.redirectUri = redirectUri;
             _settingsService = new Busy_Light.ServiceSettings();
             InitializeComponent();
@@ -382,10 +337,11 @@ namespace Busy_Light
             notifyIcon1.ShowBalloonTip(1000); // Show for 1 second
 
         }
-        private void ExitItem_Click(object sender, EventArgs e)
+        private async void ExitItem_Click(object sender, EventArgs e)
         {
             // Allow the form to actually close
             reallyClose = true;
+            await ComPortFunctions.CloseComPortSession();
             this.Close();
         }
         private void Log(string message)
