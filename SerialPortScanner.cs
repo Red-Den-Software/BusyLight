@@ -80,6 +80,7 @@ namespace Busy_Light
         private void ProcessIncomingData(byte data)
         {
             const byte HEARTBEAT_BYTE = 0x3F;
+            Debug.WriteLine($"Received byte: 0x{data:X2}");
             // Adjust "HEARTBEAT" to match your device's actual heartbeat protocol string/byte
             if (data == HEARTBEAT_BYTE) // Replace 0x01 with your actual heartbeat byte
             {

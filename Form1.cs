@@ -131,7 +131,7 @@ namespace Busy_Light
 
 
         }
-        private SerialHeartBeatManager heartbeatManager;
+       
         private async void Form1_Load(object sender, EventArgs e)
 
         {
@@ -228,35 +228,27 @@ namespace Busy_Light
             colors();
         }
         public string ocColor { get; set; }
-        private void combox2_SelectedIndexChanged(object sender, EventArgs e)
+        private void combox2_SelectionChanged(object sender, EventArgs e)
         {
-            if (comboBox2.SelectedItem == null)
-                return;
+            MessageBox.Show($"Selected color: {comboBox2.SelectedItem}");
+            
+            try { 
             string selectedColor = comboBox2.SelectedItem.ToString();
 
             byte command = selectedColor switch
             {
-                "Red" => 0x10,
-                "Green" => 0x11,
-                "Blue" => 0x12,
-                "Yellow" => 0x13,
-                "Purple" => 0x14,
+                "Red" => 0x02,
+                "Green" => 0x01,
+                "Blue" => 0x05,
+                "Yellow" => 0x06,
+                "Purple" => 0x07,
                 _ => 0x10 // default to Red
             };
-            selectedColor = ocColor;
-            try
-            {
-                if (ComPortListener.IsConnected)
-                {
-                    
-                    byte[] commandHolder = new byte[] { command };
-                    heartbeatManager.SendData(commandHolder);
-                    Debug.WriteLine($"Sent color command: {command:X2} for {selectedColor}");
-                }
-                else
-                {
-                    Debug.WriteLine("Cannot send color command — COM not started.");
-                }
+            
+           
+                    ComPortListener.heartbeatManager.SendData(new byte[] { command });
+                    MessageBox.Show($"Sent color command: {command:X2} for {selectedColor}", "Color Command", MessageBoxButtons.OK, MessageBoxIcon.Information);
+             
             }
             catch (Exception ex)
             {
@@ -530,7 +522,7 @@ namespace Busy_Light
                 // Actually close
                 _settingsService.Save();
                 
-                heartbeatManager.Dispose();
+                ComPortListener.heartbeatManager.Dispose();
 
                 if (trayIcon != null)
                 {

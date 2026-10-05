@@ -202,6 +202,7 @@ namespace Busy_Light
             comboBox2.Name = "comboBox2";
             comboBox2.Size = new Size(105, 26);
             comboBox2.TabIndex = 12;
+            comboBox2.SelectedValueChanged += combox2_SelectionChanged;
             // 
             // label3
             // 

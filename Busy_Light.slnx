@@ -1,4 +1,6 @@
 <Solution>
   <Folder Name="/Solution Items/" />
-  <Project Path="Busy_Light.csproj" />
+  <Project Path="Busy_Light.csproj">
+    <BuildType Project="Debug" />
+  </Project>
 </Solution>

@@ -17,6 +17,7 @@ u_int32_t green = pixels.Color(0,255,0);
 u_int32_t red = pixels.Color(255,0,0);
 u_int32_t blue = pixels.Color(0,0,255);
 u_int32_t yellow = pixels.Color(255,255,0);
+u_int32_t purple = pixels.Color(128,0,128);
 uint8_t data[10] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
 unsigned long previousMillis = 0; // variable to store the last time the function ran
 const long interval = 5000;       // interval at which to run the function (milliseconds)
@@ -37,7 +38,7 @@ void setup() {
 
 }
 void solidblue(){
-  pixels.fill(0,0,255);
+  pixels.fill(blue,0,255);
   pixels.show();
 }
 void solidred(){
@@ -45,11 +46,11 @@ void solidred(){
   pixels.show();
 }
 void solidyellow(){
-  pixels.fill(255, 255, 0);
+  pixels.fill(yellow,0,255);
   pixels.show();
 }
 void solidpurple(){
-  pixels.fill(128, 0, 128);
+  pixels.fill(purple,0,255);
   pixels.show();
 }
 void clear(){
@@ -86,46 +87,49 @@ void loop() {
    // Only read if a byte is available
 
   if (Serial.available() > 0) {
+
     byte b = Serial.read();
+
     unsigned long currentMillis = millis();
 
     if (currentMillis - previousMillis >= interval) {
-    previousMillis = currentMillis;
-    Serial.write(0x3F);
+        previousMillis = currentMillis;
+        Serial.write(0x3F);
     }
+
     if (b == 0x55) {
-      Serial.write(0xAA);  // Probe response
+        Serial.write(0xAA);
     }
     else if (b == 0x01) {
-      solidgreen();
+        solidgreen();
     }
     else if (b == 0x02) {
-      solidred();
+        solidred();
     }
-    else if(b == 0x04){
+    else if (b == 0x04) {
         spiralLight();
     }
-    else if(b == 0x05){
-      solidblue();
+    else if (b == 0x05) {
+        solidblue();
     }
-    else if(b == 0x06){
-      solidyellow();
+    else if (b == 0x06) {
+        solidyellow();
     }
-    else if(b == 0x07){
-      solidpurple();
+    else if (b == 0x07) {
+        solidpurple();
     }
     else if (b == 0x03) {
-  while (Serial.available() == 0);
+        while (Serial.available() == 0);
 
-  currentBrightness = Serial.read();
+        currentBrightness = Serial.read();
 
-  if (currentBrightness < 1) currentBrightness = 1;
+        if (currentBrightness < 1)
+            currentBrightness = 1;
 
-  pixels.setBrightness(currentBrightness);
-  pixels.show();
+        pixels.setBrightness(currentBrightness);
+        pixels.show();
+    }
 }
-
-  }
 }
 
 
