@@ -140,7 +140,7 @@ namespace Busy_Light
             watcher = new DeviceWatcher();
             label7.Visible = false;
             System.Diagnostics.Debug.WriteLine("InFormLoad");
-            var token = _tokenService.Load();
+           /* var token = _tokenService.Load();
             if (token != null)
             {
                 try
@@ -164,7 +164,7 @@ namespace Busy_Light
                 }
 
             }
-            
+            */
             comboBox1.Items.Add("Available");
             comboBox1.Items.Add("Unavailable");
             combox2();

@@ -8,6 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using static rc_program.Program;
+using Busy_Light;
 
 namespace Busy_Light
 {
@@ -20,7 +21,7 @@ namespace Busy_Light
     public class SerialHeartBeatManager : IDisposable
     {
         private SerialPort _serialPort;
-        
+        private Form1 form1;
         private readonly object _portLock = new object();
         private CancellationTokenSource _cts;
         private Task _readLoopTask;
@@ -39,12 +40,23 @@ namespace Busy_Light
         }
         public void Start()
         {
-          
-            _serialPort.Open();
-            _cts = new CancellationTokenSource();
-            _lastHeartbeatTime = DateTime.Now;
+            try
+            {
+                if (!_serialPort.IsOpen)
+                {
+                    _serialPort.Open();
+                    Debug.WriteLine($"Serial port {_serialPort.PortName} opened.");
+                    _cts = new CancellationTokenSource();
+                    _lastHeartbeatTime = DateTime.Now;
 
-            _readLoopTask = Task.Run(() => ReadLoop(_cts.Token));
+                    _readLoopTask = Task.Run(() => ReadLoop(_cts.Token));
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Failed to open serial port {_serialPort.PortName}: {ex.Message}");
+                MessageBox.Show($"Failed to open serial port {_serialPort.PortName}: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
         private void ReadLoop(CancellationToken token)
         {
@@ -55,18 +67,22 @@ namespace Busy_Light
                     if (_serialPort.BytesToRead > 0)
                     {
                         byte data = (byte)_serialPort.ReadByte();
-
+                        
                         ProcessIncomingData(data);
                     }
 
                     bool isAlive =
                         (DateTime.Now - _lastHeartbeatTime).TotalSeconds < 4;
+                   
+                    ComPortListener.IsConnected = isAlive;
 
                     Thread.Sleep(50);
                 }
                 catch (TimeoutException)
                 {
                     // No data received within ReadTimeout.
+                    
+                    ComPortListener.IsConnected = false;
                 }
                 catch (Exception ex)
                 {
@@ -148,57 +164,41 @@ namespace Busy_Light
             return false;
         }
 
-        
-        
 
-        public static bool IsConnected =>
-            _serialPort != null && _serialPort.IsOpen;
+
+
+        public static bool IsConnected;
+            
         public static void SendBrightnessToArduino(int value)
         {
             try
             {
-                if (_serialPort != null && _serialPort.IsOpen)
-                {
                     byte command = 0x03;
                     byte brightness = (byte)value;
                     byte[] data = { command, brightness };
                     ComPortListener.heartbeatManager.SendData(data);
-                    
-
                     Debug.WriteLine($"Sent to Arduino: 0x03, {brightness}");
-                }
-                else
-                {
-                    Debug.WriteLine("Serial port not open!");
-                }
-            }
+             }
             catch (Exception ex)
             {
                 Debug.WriteLine($"Serial write failed: {ex.Message}");
             }
         }
+
        
         
         private static void OnTelephonyStatusChanged(string status)
         {
             string[] targetStatuses = { "Ringing", "CallConnected" };
             string[] availableStatuses = { "NoCall", "Disconnected" };
-            if (_serialPort == null || !_serialPort.IsOpen)
-                return;
             System.Diagnostics.Debug.WriteLine($"Port open? {_serialPort?.IsOpen}");
             if (targetStatuses.Contains(status))
             {
                 try
                 {
-                    if (_serialPort == null || !_serialPort.IsOpen)
-                    {
-                        System.Diagnostics.Debug.WriteLine("Serial port not open!");
-                        return;
-                    }
+                   
                     System.Diagnostics.Debug.WriteLine($"Writing 0x02 for status {status}");
-
-                    byte[] unavailable = { 0x02 };
-                    _serialPort.Write(unavailable, 0, 1);
+                    ComPortListener.heartbeatManager.SendData(new byte[] { 0x02 });
 
                     System.Diagnostics.Debug.WriteLine($"Telephony Status: {status}");
                 }
@@ -212,8 +212,7 @@ namespace Busy_Light
                 try
                 {
                     System.Diagnostics.Debug.WriteLine($"Writing 0x01 for status {status}");
-                    byte[] available = { 0x01 };
-                    _serialPort.Write(available, 0, 1);
+                    ComPortListener.heartbeatManager.SendData(new byte[] { 0x01 });
 
                     System.Diagnostics.Debug.WriteLine($"Telephony Status: {status}");
                 }
@@ -272,18 +271,18 @@ namespace Busy_Light
                 {
                     case ESPStatus.Available:
                         byte[] available = { 0x01 };
-                        main._serialPort.Write(available, 0, 1);
+                        ComPortListener.heartbeatManager.SendData(available);
                         System.Diagnostics.Debug.WriteLine("Sent Available to Arduino");
                         break;
                     case ESPStatus.Unavailable:
                         byte[] unavailable = { 0x02 };
-                        main._serialPort.Write(unavailable, 0, 1);
+                        ComPortListener.heartbeatManager.SendData(unavailable);
                         System.Diagnostics.Debug.WriteLine("Sent Unavailable to Arduino");
                         break;
                     case ESPStatus.SetBrightness:
                         byte command = 0x03;
                         byte brightnessValue = (byte)brightness;
-                        main._serialPort.Write(new byte[] { command, brightnessValue }, 0, 2);
+                        ComPortListener.heartbeatManager.SendData(new byte[] { command, brightnessValue });
                         System.Diagnostics.Debug.WriteLine($"Sent SetBrightness to Arduino: {brightnessValue}");
                         break;
                 }
