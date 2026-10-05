@@ -25,7 +25,7 @@ namespace Busy_Light
         public static event Action<byte> OnBrightnessReceived;
         
         
-        public string textBox1_Text
+      /*  public string textBox1_Text
         {
             get { return textBox1.Text; }
             set { textBox1.Text = value; }
@@ -34,19 +34,19 @@ namespace Busy_Light
         {
             if (ComPortListener.IsConnected)
             {
-                textBox1.Text = "Connected";
+                textBox1_Text = "Connected";
                 textBox1.BackColor = Color.Green;
                 return true;
             }
             else
             {
-                textBox1.Text = "Disconnected";
+                textBox1_Text = "Disconnected";
                 textBox1.BackColor = Color.Red;
                 return false;
             }
         }
         
-
+        */
         
         private Busy_Light.ServiceSettings _settingsService;
 
@@ -59,8 +59,8 @@ namespace Busy_Light
        
         public Form1(RestClient restClient, TokenService tokenService, string redirectUri)
         {
-            
-          ComPortListener.ComPortHardwareIDFinder();
+            //UpdateConnectionStatus();
+            ComPortListener.ComPortHardwareIDFinder();
             this.redirectUri = redirectUri;
             _settingsService = new Busy_Light.ServiceSettings();
             InitializeComponent();

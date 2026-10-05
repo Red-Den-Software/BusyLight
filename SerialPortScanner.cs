@@ -48,7 +48,7 @@ namespace Busy_Light
                     Debug.WriteLine($"Serial port {_serialPort.PortName} opened.");
                     _cts = new CancellationTokenSource();
                     _lastHeartbeatTime = DateTime.Now;
-
+                   
                     _readLoopTask = Task.Run(() => ReadLoop(_cts.Token));
                 }
             }
@@ -58,49 +58,56 @@ namespace Busy_Light
                 MessageBox.Show($"Failed to open serial port {_serialPort.PortName}: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
+
         private void ReadLoop(CancellationToken token)
         {
+            Debug.WriteLine("=== READ LOOP STARTED ===");
+
             while (!token.IsCancellationRequested && _serialPort.IsOpen)
             {
                 try
                 {
+                    Debug.WriteLine($"Loop | Open: {_serialPort.IsOpen} | Bytes: {_serialPort.BytesToRead}");
+
                     if (_serialPort.BytesToRead > 0)
                     {
-                        byte data = (byte)_serialPort.ReadByte();
-                        
-                        ProcessIncomingData(data);
+                        int data = _serialPort.ReadByte();
+
+                        Debug.WriteLine($"RECEIVED: 0x{data:X2}");
+
+                        ProcessIncomingData((byte)data);
                     }
 
-                    bool isAlive =
-                        (DateTime.Now - _lastHeartbeatTime).TotalSeconds < 4;
-                   
-                    ComPortListener.IsConnected = isAlive;
-
-                    Thread.Sleep(50);
-                }
-                catch (TimeoutException)
-                {
-                    // No data received within ReadTimeout.
-                    
-                    ComPortListener.IsConnected = false;
+                    Thread.Sleep(10);
                 }
                 catch (Exception ex)
                 {
+                    Debug.WriteLine($"SERIAL ERROR: {ex}");
+
                     if (!token.IsCancellationRequested)
-                    {
-                        Debug.WriteLine($"Serial error: {ex.Message}");
-                    }
+                        ComPortListener.IsConnected = false;
                 }
             }
+
+            Debug.WriteLine("=== READ LOOP EXITED ===");
         }
         private void ProcessIncomingData(byte data)
         {
             const byte HEARTBEAT_BYTE = 0x3F;
+
             Debug.WriteLine($"Received byte: 0x{data:X2}");
-            // Adjust "HEARTBEAT" to match your device's actual heartbeat protocol string/byte
-            if (data == HEARTBEAT_BYTE) // Replace 0x01 with your actual heartbeat byte
+
+            if (data == HEARTBEAT_BYTE)
             {
                 _lastHeartbeatTime = DateTime.Now;
+
+                if (!ComPortListener.IsConnected)
+                {
+                    Debug.WriteLine("Arduino connected - heartbeat detected.");
+                }
+
+                ComPortListener.IsConnected = true;
+
                 OnHeartbeatReceived?.Invoke(data);
             }
         }

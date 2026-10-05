@@ -86,17 +86,19 @@ void spiralLight(){
 void loop() {
    // Only read if a byte is available
 
+   unsigned long currentMillis = millis();
+
+    if (currentMillis - previousMillis >= interval)
+    {
+        previousMillis = currentMillis;
+        Serial.write(0x3F);
+    }
+    
   if (Serial.available() > 0) {
 
     byte b = Serial.read();
 
-    unsigned long currentMillis = millis();
-
-    if (currentMillis - previousMillis >= interval) {
-        previousMillis = currentMillis;
-        Serial.write(0x3F);
-    }
-
+    
     if (b == 0x55) {
         Serial.write(0xAA);
     }
