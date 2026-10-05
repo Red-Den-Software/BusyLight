@@ -60,7 +60,7 @@ namespace Busy_Light
         {
             // Your cleanup code goes here
             Console.WriteLine("Application is exiting. Closing Serial Port...");
-            await SerialPortScanner.StopComListener();
+            await ComPortFunctions.CloseComPortSession();
             Console.WriteLine("Serial Port closed. Application exited.");
         }
     }

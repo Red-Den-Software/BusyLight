@@ -16,7 +16,7 @@ namespace Busy_Light
         static string port = null;
         public static CancellationTokenSource _cts;
     }
-    public class SerialPortScanner
+    public class ComPortListener
     {
 
         public static SerialPort _serialPort;
@@ -150,7 +150,7 @@ namespace Busy_Light
     public class  ComPortFunctions
     {
         
-        public async Task StopComListener()
+        public static async Task CloseComPortSession()
         {
             main._cts?.Cancel();
 

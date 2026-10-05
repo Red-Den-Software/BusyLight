@@ -67,7 +67,7 @@ namespace Busy_Light
         }
         public bool UpdateConnectionStatus()
         {
-            if (SerialPortScanner.IsConnected)
+            if (ComPortListener.IsConnected)
             {
                 textBox1.Text = "Connected";
                 textBox1.BackColor = Color.Green;
@@ -98,7 +98,7 @@ namespace Busy_Light
             foreach (var port in ports)
             {
                 // Optional: filter if needed
-                SerialPortScanner.StartComListener(port, this);
+                ComPortListener.StartComListener(port, this);
                 break; // remove if you want to try all
             }
         }
@@ -129,7 +129,7 @@ namespace Busy_Light
             int percent = (value * 100) / 255;
             label1.Text = $"Brightness: {percent}%";
             _settingsService.Settings.Brightness = value;
-            SerialPortScanner.SendBrightnessToArduino(value); // send the raw 0-255 value
+            ComPortListener.SendBrightnessToArduino(value); // send the raw 0-255 value
             _settingsService.Save();
         }
         private WebSocketExtension _wsExtension;
@@ -290,10 +290,10 @@ namespace Busy_Light
             selectedColor = ocColor;
             try
             {
-                if (SerialPortScanner.IsConnected)
+                if (ComPortListener.IsConnected)
                 {
-                    SerialPortScanner._serialPort.Write(new byte[] { command }, 0, 1);
-                    SerialPortScanner._serialPort.BaseStream.Flush();
+                    ComPortListener._serialPort.Write(new byte[] { command }, 0, 1);
+                    ComPortListener._serialPort.BaseStream.Flush();
                     Debug.WriteLine($"Sent color command: {command:X2} for {selectedColor}");
                 }
                 else
@@ -472,7 +472,7 @@ namespace Busy_Light
                         await StartWebSocket();
                         Log("WebSocket started.");
 
-                        SerialPortScanner.ManualStatusChangeA();
+                        ComPortFunctions.SendStatusToESP(ComPortFunctions.ESPStatus.Available);
                         Log("ManualStatusChangeA triggered.");
                     }
                     catch (Exception ex)
@@ -535,7 +535,7 @@ namespace Busy_Light
 
         private void button1_Click(object sender, EventArgs e)
         {
-            SerialPortScanner serialPortScanner = new SerialPortScanner();
+            ComPortListener serialPortScanner = new ComPortListener();
             if (comboBox1.SelectedItem == null)
             {
                 MessageBox.Show("Please select an option first.");
@@ -545,11 +545,11 @@ namespace Busy_Light
             switch (comboBox1.SelectedItem.ToString())
             {
                 case "Available":
-                    SerialPortScanner.ManualStatusChange();
+                    ComPortFunctions.SendStatusToESP(ComPortFunctions.ESPStatus.Available);
                     break;
 
                 case "Unavailable":
-                    SerialPortScanner.ManualStatusChangeUA();
+                    ComPortFunctions.SendStatusToESP(ComPortFunctions.ESPStatus.Unavailable);
                     break;
             }
         }
@@ -558,7 +558,10 @@ namespace Busy_Light
         {
 
         }
-
+        private async void CloseComPortSession()
+        {
+            await ComPortFunctions.CloseComPortSession();
+        }
         private void Form1_FormClosing(object sender, FormClosingEventArgs e)
         {
             if (!reallyClose)
@@ -571,7 +574,7 @@ namespace Busy_Light
             {
                 // Actually close
                 _settingsService.Save();
-                SerialPortScanner.StopComListener();
+                CloseComPortSession();
 
                 if (trayIcon != null)
                 {
