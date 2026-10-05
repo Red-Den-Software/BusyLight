@@ -1,4 +1,5 @@
-﻿using System;
+﻿using RingCentral;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO.Ports;
@@ -9,42 +10,27 @@ using static rc_program.Program;
 
 namespace Busy_Light
 {
+    public class main
+    {
+        public static SerialPort _serialPort;
+        static string port = null;
+        public static CancellationTokenSource _cts;
+    }
     public class SerialPortScanner
     {
 
         public static SerialPort _serialPort;
-        static string port = null;
-
-
-
-        //public static void ifport(Form1 form)
-        //{
-        //    if (IsConnected)
-        //        return;
-        //    port = FindDevicePort();
-        //    if (port != null)
-        //    {
-        //        StartComListener(port, form);
-        //    }
-        //    else
-        //    {
-        //        Debug.WriteLine("Device not found.");
-
-        //        form.textBox1.Text = "Disconnected";
-        //        form.textBox1.BackColor = Color.Red;
-        //    }
-        //}
-        private static CancellationTokenSource _cts;
 
         public static void StartComListener(string port, Form1 form)
         {
+            
             Form1 form1 = form;
-            _cts = new CancellationTokenSource();
+            main._cts = new CancellationTokenSource();
 
             Task.Run(async () =>
             {
 
-                while (!_cts.Token.IsCancellationRequested)
+                while (!main._cts.Token.IsCancellationRequested)
                 {
                     try
                     {
@@ -85,15 +71,7 @@ namespace Busy_Light
                 }
             });
         }
-        public static void StopComListener()
-        {
-            _cts?.Cancel();
-
-            if (_serialPort != null && _serialPort.IsOpen)
-            {
-                _serialPort.Close();
-            }
-        }
+        
 
         public static bool IsConnected =>
             _serialPort != null && _serialPort.IsOpen;
@@ -120,65 +98,8 @@ namespace Busy_Light
                 Debug.WriteLine($"Serial write failed: {ex.Message}");
             }
         }
-        public static string oncall_color { get; set; }
-        public static void ManualStatusChangeUA()
-        {
-
-            if (!IsConnected)
-            {
-                Debug.WriteLine("Cannot send manual status — COM not started.");
-                return;
-            }
-            try
-            {
-
-                if (_serialPort != null && _serialPort.IsOpen)
-                {
-                    byte[] command = { 0x02 };
-                    _serialPort.Write(command, 0, 1);
-                    //_serialPort.NewLine = command;
-                    System.Diagnostics.Debug.WriteLine($"Port open: {_serialPort?.IsOpen}");
-
-                    Debug.WriteLine($"Sent to Arduino: 0x02, {command[0]}");
-                }
-                else
-                {
-                    Debug.WriteLine("Serial port not open!");
-                }
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"Serial write failed: {ex.Message}");
-            }
-        }
-        public static void ManualStatusChangeA()
-        {
-            if (!IsConnected)
-            {
-                Debug.WriteLine("Cannot send manual status — COM not started.");
-                return;
-            }
-            try
-            {
-                if (_serialPort != null && _serialPort.IsOpen)
-                {
-                    byte[] command = { 0x01 };
-
-                    _serialPort.Write(command, 0, 1);
-                    _serialPort.BaseStream.Flush();
-
-                    Debug.WriteLine($"Sent to Arduino: 0x01, {command}");
-                }
-                else
-                {
-                    Debug.WriteLine("Serial port not open!");
-                }
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"Serial write failed: {ex.Message}");
-            }
-        }
+       
+        
         private static void OnTelephonyStatusChanged(string status)
         {
             string[] targetStatuses = { "Ringing", "CallConnected" };
@@ -225,5 +146,62 @@ namespace Busy_Light
         }
 
 
+    }
+    public class  ComPortFunctions
+    {
+        
+        public async Task StopComListener()
+        {
+            main._cts?.Cancel();
+
+            if (main._serialPort != null && main._serialPort.IsOpen)
+            {
+                main._serialPort.Close();
+            }
+        }
+        public static void ManualStatusChange(string status)
+        {
+           if (status == "Unavailable")
+            {
+                SendStatusToESP(ESPStatus.Unavailable);
+            }
+            else if (status == "Available")
+            {
+                SendStatusToESP(ESPStatus.Available);
+            }
+
+            
+        }
+        public enum ESPStatus
+        {
+            Available = 0x01,
+            Unavailable = 0x02,
+            SetBrightness = 0x03
+        }
+        public static void SendStatusToESP(ESPStatus status, int brightness = 0)
+        {
+            if (main._serialPort != null && main._serialPort.IsOpen)
+            {
+                switch (status)
+                {
+                    case ESPStatus.Available:
+                        byte[] available = { 0x01 };
+                        main._serialPort.Write(available, 0, 1);
+                        System.Diagnostics.Debug.WriteLine("Sent Available to Arduino");
+                        break;
+                    case ESPStatus.Unavailable:
+                        byte[] unavailable = { 0x02 };
+                        main._serialPort.Write(unavailable, 0, 1);
+                        System.Diagnostics.Debug.WriteLine("Sent Unavailable to Arduino");
+                        break;
+                    case ESPStatus.SetBrightness:
+                        byte command = 0x03;
+                        byte brightnessValue = (byte)brightness;
+                        main._serialPort.Write(new byte[] { command, brightnessValue }, 0, 2);
+                        System.Diagnostics.Debug.WriteLine($"Sent SetBrightness to Arduino: {brightnessValue}");
+                        break;
+                }
+            }
+        }
     }
 }

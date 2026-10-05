@@ -29,6 +29,7 @@ namespace rc_program
     public class Program
     {
         
+
         public List<Presence.Body> presenceData { get; set; }
         Presence.Body presence;
         public static class PresenceChannel

@@ -545,7 +545,7 @@ namespace Busy_Light
             switch (comboBox1.SelectedItem.ToString())
             {
                 case "Available":
-                    SerialPortScanner.ManualStatusChangeA();
+                    SerialPortScanner.ManualStatusChange();
                     break;
 
                 case "Unavailable":

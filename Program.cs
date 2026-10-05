@@ -48,6 +48,20 @@ namespace Busy_Light
 
             Application.Run(new Form1(restClient, tokenService, redirectUri));
 
+                AppDomain.CurrentDomain.ProcessExit += new EventHandler(CurrentDomain_ProcessExit);
+
+                Console.WriteLine("Application running");
+
+            
+
+            
+        }
+        static async void CurrentDomain_ProcessExit(object sender, EventArgs e)
+        {
+            // Your cleanup code goes here
+            Console.WriteLine("Application is exiting. Closing Serial Port...");
+            await SerialPortScanner.StopComListener();
+            Console.WriteLine("Serial Port closed. Application exited.");
         }
     }
 }
