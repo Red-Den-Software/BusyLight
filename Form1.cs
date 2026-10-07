@@ -21,11 +21,16 @@ namespace Busy_Light
         private readonly RestClient _restClient;
         private string RedirectUri = Environment.GetEnvironmentVariable("REDIRECT_URI");
         private DeviceWatcher watcher;
-       
+        private DateTime _lastHeartbeatTime = DateTime.MinValue;
+
+        private const int HEARTBEAT_TIMEOUT_SECONDS = 10;
+
+        private System.Threading.Timer? _heartbeatTimer;
+
         public static event Action<byte> OnBrightnessReceived;
         
         
-        public string textBox1_Text
+      /*  public string textBox1_Text
         {
             get { return textBox1.Text; }
             set { textBox1.Text = value; }
@@ -34,19 +39,19 @@ namespace Busy_Light
         {
             if (ComPortListener.IsConnected)
             {
-                textBox1.Text = "Connected";
+                textBox1_Text = "Connected";
                 textBox1.BackColor = Color.Green;
                 return true;
             }
             else
             {
-                textBox1.Text = "Disconnected";
+                textBox1_Text = "Disconnected";
                 textBox1.BackColor = Color.Red;
                 return false;
             }
         }
         
-
+        */
         
         private Busy_Light.ServiceSettings _settingsService;
 
@@ -59,8 +64,10 @@ namespace Busy_Light
        
         public Form1(RestClient restClient, TokenService tokenService, string redirectUri)
         {
-            
-          ComPortListener.ComPortHardwareIDFinder();
+           
+            Program.Main();
+            //UpdateConnectionStatus();
+            ComPortListener.ComPortHardwareIDFinder();
             this.redirectUri = redirectUri;
             _settingsService = new Busy_Light.ServiceSettings();
             InitializeComponent();
@@ -89,7 +96,7 @@ namespace Busy_Light
         }
         private WebSocketExtension _wsExtension;
         private string redirectUri;
-
+        
         private async Task StartWebSocket()
         {
 
@@ -101,15 +108,10 @@ namespace Busy_Light
 
             await _restClient.InstallExtension(_wsExtension);
             System.Diagnostics.Debug.WriteLine("Subscribing to presence changes...");
-            await _wsExtension.Subscribe(
-
-                new[] { "/restapi/v1.0/account/~/extension/~/presence" },
-                async message =>
-                {
-
-                    await Status(message);
-                    Log($"Received presence message: {message}");
-                });
+            await _wsExtension.Subscribe(new string[]
+{
+    "/restapi/v1.0/account/~/extension/~/presence"
+}, message => { Console.WriteLine("Notification received"); });
         }
         private async Task SMSWS()
         {
@@ -135,12 +137,14 @@ namespace Busy_Light
         private async void Form1_Load(object sender, EventArgs e)
 
         {
-            
-          
+            Debug.WriteLine("InFormLoad");
+
+           
+
             watcher = new DeviceWatcher();
             label7.Visible = false;
             System.Diagnostics.Debug.WriteLine("InFormLoad");
-            var token = _tokenService.Load();
+           var token = _tokenService.Load();
             if (token != null)
             {
                 try
@@ -343,6 +347,8 @@ namespace Busy_Light
         {
             // Allow the form to actually close
             reallyClose = true;
+            _heartbeatTimer?.Dispose();
+            _heartbeatTimer = null;
             await ComPortFunctions.CloseComPortSession();
             this.Close();
         }
