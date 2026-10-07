@@ -145,8 +145,16 @@ namespace Busy_Light
             {
                 try
                 {
-                    _restClient.token = TokenService.refresh_token; // <-- important!
+                   _restClient.token = new TokenInfo
+                   {
+                       access_token = token.access_token,
+                       refresh_token = token.refresh_token,
+                       expires_in = token.expires_in,
+                       token_type = token.token_type
+                   };
 
+                    System.Diagnostics.Debug.WriteLine($"Loaded token: {token.refresh_token}");
+                    System.Diagnostics.Debug.WriteLine($"_rest client token: {_restClient.token.refresh_token} ");
                     System.Diagnostics.Debug.WriteLine("Existing token found, attempting to refresh...");
 
                     await _restClient.Get("/restapi/v1.0/account/~/extension/~/presence");
@@ -394,7 +402,7 @@ namespace Busy_Light
 
                 var context = await _listener.GetContextAsync();
                 var code = context.Request.QueryString["code"];
-
+                System.Diagnostics.Debug.WriteLine($"Authorization code received: {code}"); // Log the code for debugging
                 // Respond to browser
                 var responseString = "<html><body>You may close this window.</body></html>";
                 var buffer = Encoding.UTF8.GetBytes(responseString);

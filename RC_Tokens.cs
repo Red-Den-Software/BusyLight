@@ -34,8 +34,8 @@ namespace Busy_Light
 
             File.WriteAllText(_tokenPath, json);
         }
-        private JsonElement _refreshToken;
 
+        [JsonPropertyName("refresh_token")]
         public static TokenInfo refresh_token { get; internal set; }
 
         public class tokens
