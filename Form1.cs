@@ -64,6 +64,8 @@ namespace Busy_Light
        
         public Form1(RestClient restClient, TokenService tokenService, string redirectUri)
         {
+           
+            Program.Main();
             //UpdateConnectionStatus();
             ComPortListener.ComPortHardwareIDFinder();
             this.redirectUri = redirectUri;
@@ -94,7 +96,7 @@ namespace Busy_Light
         }
         private WebSocketExtension _wsExtension;
         private string redirectUri;
-
+        
         private async Task StartWebSocket()
         {
 
@@ -106,15 +108,10 @@ namespace Busy_Light
 
             await _restClient.InstallExtension(_wsExtension);
             System.Diagnostics.Debug.WriteLine("Subscribing to presence changes...");
-            await _wsExtension.Subscribe(
-
-                new[] { "/restapi/v1.0/account/~/extension/~/presence" },
-                async message =>
-                {
-
-                    await Status(message);
-                    Log($"Received presence message: {message}");
-                });
+            await _wsExtension.Subscribe(new string[]
+{
+    "/restapi/v1.0/account/~/extension/~/presence"
+}, message => { Console.WriteLine("Notification received"); });
         }
         private async Task SMSWS()
         {
@@ -147,7 +144,7 @@ namespace Busy_Light
             watcher = new DeviceWatcher();
             label7.Visible = false;
             System.Diagnostics.Debug.WriteLine("InFormLoad");
-           /* var token = _tokenService.Load();
+           var token = _tokenService.Load();
             if (token != null)
             {
                 try
@@ -171,7 +168,7 @@ namespace Busy_Light
                 }
 
             }
-            */
+            
             comboBox1.Items.Add("Available");
             comboBox1.Items.Add("Unavailable");
             combox2();

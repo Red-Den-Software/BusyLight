@@ -6,7 +6,7 @@ using System.IO;
 using ServiceStack.Text;
 namespace Busy_Light
 {
-    internal static class Program
+    public static class Program
     {
         /// <summary>
         ///  The main entry point for the application.
@@ -33,7 +33,7 @@ namespace Busy_Light
             return (clientId, clientSecret, serverUrl, redirectUri);
         }
         [STAThread]
-        static void Main()
+        public static void Main()
         {
             
             ApplicationConfiguration.Initialize();
@@ -50,7 +50,7 @@ namespace Busy_Light
 
                 AppDomain.CurrentDomain.ProcessExit += new EventHandler(CurrentDomain_ProcessExit);
 
-                Console.WriteLine("Application running");
+                System.Diagnostics.Debug.WriteLine("Application running");
 
             
 
