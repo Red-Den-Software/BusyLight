@@ -83,6 +83,15 @@ void spiralLight(){
   colorWipe(pixels.Color(255,255,0), 50);
   pixels.show();
 }
+void (*commands[])() = {
+    solidgreen,    // 0x01
+    solidred,      // 0x02
+    // 0x03 is brightness, so this needs special handling
+    spiralLight,   // 0x04
+    solidblue,     // 0x05
+    solidyellow,   // 0x06
+    solidpurple    // 0x07
+};
 void loop() {
    // Only read if a byte is available
 
@@ -95,30 +104,9 @@ void loop() {
     }
     
   if (Serial.available() > 0) {
-
     byte b = Serial.read();
-
-    
     if (b == 0x55) {
         Serial.write(0xAA);
-    }
-    else if (b == 0x01) {
-        solidgreen();
-    }
-    else if (b == 0x02) {
-        solidred();
-    }
-    else if (b == 0x04) {
-        spiralLight();
-    }
-    else if (b == 0x05) {
-        solidblue();
-    }
-    else if (b == 0x06) {
-        solidyellow();
-    }
-    else if (b == 0x07) {
-        solidpurple();
     }
     else if (b == 0x03) {
         while (Serial.available() == 0);
@@ -131,7 +119,13 @@ void loop() {
         pixels.setBrightness(currentBrightness);
         pixels.show();
     }
-}
+    else if (b >= 0x01 && b <= 0x07) {
+
+        if (commands[b - 1] != nullptr) {
+            commands[b - 1]();
+        }
+    }
+  }
 }
 
 
