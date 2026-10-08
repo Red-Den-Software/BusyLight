@@ -13,11 +13,11 @@
 // strips you might need to change the third parameter -- see the
 // strandtest example for more information on possible values.
 Adafruit_NeoPixel pixels(NUMPIXELS, PIN, NEO_GRB + NEO_KHZ800);
-u_int32_t green = pixels.Color(0,255,0);
-u_int32_t red = pixels.Color(255,0,0);
-u_int32_t blue = pixels.Color(0,0,255);
-u_int32_t yellow = pixels.Color(255,255,0);
-u_int32_t purple = pixels.Color(128,0,128);
+uint32_t green = pixels.Color(0,255,0);
+uint32_t red = pixels.Color(255,0,0);
+uint32_t blue = pixels.Color(0,0,255);
+uint32_t yellow = pixels.Color(255,255,0);
+uint32_t purple = pixels.Color(128,0,128);
 uint8_t data[10] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
 unsigned long previousMillis = 0; // variable to store the last time the function ran
 const long interval = 5000;       // interval at which to run the function (milliseconds)
@@ -83,15 +83,40 @@ void spiralLight(){
   colorWipe(pixels.Color(255,255,0), 50);
   pixels.show();
 }
-void (*commands[])() = {
+void (*solidlight[])() = {
     solidgreen,    // 0x01
     solidred,      // 0x02
-    // 0x03 is brightness, so this needs special handling
     spiralLight,   // 0x04
     solidblue,     // 0x05
     solidyellow,   // 0x06
     solidpurple    // 0x07
 };
+void (*spiralLightFunc[])() = {
+     [10] = colorWipe(green, 50),  // 0x0A
+    [11] = colorWipe(red, 50),    // 0x0B
+    [12] = colorWipe(blue, 50),   // 0x0C
+    [13] = colorWipe(yellow, 50), // 0x0D
+    [14] = colorWipe(purple, 50)  // 0x0E
+};
+uint32_t Wheel(byte WheelPos) {
+    WheelPos = 255 - WheelPos;
+    if (WheelPos < 85) {
+        return strip.Color(255 - WheelPos * 3, 0, WheelPos * 3);
+    }
+    if (WheelPos < 170) {
+        WheelPos -= 85;
+        return strip.Color(0, WheelPos * 3, 255 - WheelPos * 3);
+    }
+    WheelPos -= 170;
+    return strip.Color(WheelPos * 3, 255 - WheelPos * 3, 0);
+}
+void colorWipe(uint32_t c, uint8_t wait) {
+    for (uint16_t i = 0; i < strip.numPixels(); i++) {
+        strip.setPixelColor(i, c);
+        strip.show();
+        delay(wait);
+    }
+}
 void loop() {
    // Only read if a byte is available
 
@@ -121,10 +146,15 @@ void loop() {
     }
     else if (b >= 0x01 && b <= 0x07) {
 
-        if (commands[b - 1] != nullptr) {
-            commands[b - 1]();
+        if (solidlight[b - 1] != nullptr) {
+            solidlight[b - 1]();
         }
     }
+	else if (b >= 0x0A && b <= 0x0E) {
+		if (spiralLightFunc[b - 10] != nullptr) {
+			spiralLightFunc[b - 10]();
+		}
+	}
   }
 }
 
