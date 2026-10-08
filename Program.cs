@@ -36,7 +36,7 @@ namespace Busy_Light
         public static void Main()
         {
             
-            ApplicationConfiguration.Initialize();
+           ApplicationConfiguration.Initialize();
            
             // load .env variables
             var (clientId, clientSecret, serverUrl, redirectUri) = LoadEnvVariables();

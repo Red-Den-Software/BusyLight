@@ -12,7 +12,7 @@ using Busy_Light;
 
 namespace Busy_Light
 {
-    public class main
+    public class SerialPortManager
     {
         public static SerialPort _serialPort;
         public static string port = null;
@@ -375,9 +375,9 @@ namespace Busy_Light
                 {
                     Debug.WriteLine($"Found COM port: {deviceId} - {description}");
 
-                    main.port = deviceId;
+                    SerialPortManager.port = deviceId;
 
-                    heartbeatManager = new SerialHeartBeatManager(main.port);
+                    heartbeatManager = new SerialHeartBeatManager(SerialPortManager.port);
                     heartbeatManager.Start();
 
                     return true;
@@ -394,17 +394,32 @@ namespace Busy_Light
             
         public static void SendBrightnessToArduino(int value)
         {
+            if (heartbeatManager == null)
+            {
+                Debug.WriteLine("Cannot send brightness: heartbeat manager is not initialized.");
+                return;
+            }
+
             try
             {
-                    byte command = 0x03;
-                    byte brightness = (byte)value;
-                    byte[] data = { command, brightness };
-                    ComPortListener.heartbeatManager.SendData(data);
-                    Debug.WriteLine($"Sent to Arduino: 0x03, {brightness}");
-             }
+                byte command = 0x03;
+                byte brightness = (byte)Math.Clamp(value, 0, 255);
+
+                byte[] data =
+                {
+            command,
+            brightness
+        };
+
+                heartbeatManager.SendData(data);
+
+                Debug.WriteLine(
+                    $"Sent to Arduino: 0x03, {brightness}");
+            }
             catch (Exception ex)
             {
-                Debug.WriteLine($"Serial write failed: {ex.Message}");
+                Debug.WriteLine(
+                    $"Serial write failed: {ex.Message}");
             }
         }
 
@@ -453,11 +468,11 @@ namespace Busy_Light
        
         public static async Task CloseComPortSession()
         {
-            main._cts?.Cancel();
+            SerialPortManager._cts?.Cancel();
 
-            if (main._serialPort != null && main._serialPort.IsOpen)
+            if (SerialPortManager._serialPort != null && SerialPortManager._serialPort.IsOpen)
             {
-                main._serialPort.Close();
+                SerialPortManager._serialPort.Close();
             }
         }
         
@@ -488,7 +503,7 @@ namespace Busy_Light
         }
         public static void SendStatusToESP(ESPStatus status, int brightness = 0)
         {
-            if (main._serialPort != null && main._serialPort.IsOpen)
+            if (SerialPortManager._serialPort != null && SerialPortManager._serialPort.IsOpen)
             {
                 switch (status)
                 {

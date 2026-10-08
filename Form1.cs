@@ -65,7 +65,7 @@ namespace Busy_Light
         public Form1(RestClient restClient, TokenService tokenService, string redirectUri)
         {
            
-            Program.Main();
+           
             //UpdateConnectionStatus();
             ComPortListener.ComPortHardwareIDFinder();
             this.redirectUri = redirectUri;
