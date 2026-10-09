@@ -38,9 +38,12 @@ void setup() {
   
 
 }
+
 void rotatePixels(uint32_t color, int wait) {
   int count = pixels.numPixels();
-  while (true) {
+  byte s = Serial.read();
+  if (s = 0x03 || 0x55){
+    while (true) {
     for (int i = 0; i < count; i++) {
    // Set all pixel colors to 'off'
     pixels.clear();
@@ -52,6 +55,9 @@ void rotatePixels(uint32_t color, int wait) {
     pixels.show();
     delay(wait);
   }
+  }
+}
+  
 }
 }
 void solidblue(){
