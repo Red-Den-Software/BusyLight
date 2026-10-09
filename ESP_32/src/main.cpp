@@ -10,7 +10,7 @@
 #define NUMPIXELS 16 // Popular NeoPixel ring size
 // When setting up the NeoPixel library, we tell it how many pixels,
 // and which pin to use to send signals. Note that for older NeoPixel
-// strips you might need to change the third parameter -- see the
+// pixelss you might need to change the third parameter -- see the
 // strandtest example for more information on possible values.
 Adafruit_NeoPixel pixels(NUMPIXELS, PIN, NEO_GRB + NEO_KHZ800);
 uint32_t green = pixels.Color(0,255,0);
@@ -32,10 +32,27 @@ void setup() {
   clock_prescale_set(clock_div_1);
 #endif
   // END of Trinket-specific code.
-  pixels.begin(); // INITIALIZE NeoPixel strip object (REQUIRED)
+  pixels.begin(); // INITIALIZE NeoPixel pixels object (REQUIRED)
   Serial.begin(9600);
   pixels.show();
+  
 
+}
+void rotatePixels(uint32_t color, int wait) {
+  int count = pixels.numPixels();
+  while (true) {
+    for (int i = 0; i < count; i++) {
+   // Set all pixel colors to 'off'
+    pixels.clear();
+    // Turn on the current pixel and a few trailing ones for a "comet" trail effect
+    pixels.setPixelColor(i, color);
+     pixels.setPixelColor((i - 1 + count) % count, color);
+            pixels.setPixelColor((i - 2 + count) % count, color);
+    
+    pixels.show();
+    delay(wait);
+  }
+}
 }
 void solidblue(){
   pixels.fill(blue,0,255);
@@ -61,6 +78,25 @@ void solidgreen(){
   pixels.fill(green, 0, 255);
   pixels.show();
 }
+void spiralGreen() {
+    rotatePixels(green, 50);
+}
+
+void spiralRed() {
+    rotatePixels(red, 50);
+}
+
+void spiralBlue() {
+    rotatePixels(blue, 50);
+}
+
+void spiralYellow() {
+    rotatePixels(yellow, 50);
+}
+
+void spiralPurple() {
+    rotatePixels(purple, 50);
+}
 void lights() {
   if (Serial.available() > 0) {
     byte incomingByte = Serial.read();
@@ -72,15 +108,9 @@ void lights() {
     }
   }
 } 
-void colorWipe(uint32_t c, uint8_t wait) {
-  for(uint16_t i=0; i<pixels.numPixels(); i++) {
-    pixels.setPixelColor(i, c);
-    pixels.show();
-    delay(wait);
-  }
-}
+
 void spiralLight(){
-  colorWipe(pixels.Color(255,255,0), 50);
+  rotatePixels(pixels.Color(255,255,0), 50);
   pixels.show();
 }
 void (*solidlight[])() = {
@@ -91,35 +121,28 @@ void (*solidlight[])() = {
     solidyellow,   // 0x06
     solidpurple    // 0x07
 };
-void (*spiralLightFunc[])() = {
-     [10] = colorWipe(green, 50),  // 0x0A
-    [11] = colorWipe(red, 50),    // 0x0B
-    [12] = colorWipe(blue, 50),   // 0x0C
-    [13] = colorWipe(yellow, 50), // 0x0D
-    [14] = colorWipe(purple, 50)  // 0x0E
-};
+
 uint32_t Wheel(byte WheelPos) {
     WheelPos = 255 - WheelPos;
     if (WheelPos < 85) {
-        return strip.Color(255 - WheelPos * 3, 0, WheelPos * 3);
+        return pixels.Color(255 - WheelPos * 3, 0, WheelPos * 3);
     }
     if (WheelPos < 170) {
         WheelPos -= 85;
-        return strip.Color(0, WheelPos * 3, 255 - WheelPos * 3);
+        return pixels.Color(0, WheelPos * 3, 255 - WheelPos * 3);
     }
     WheelPos -= 170;
-    return strip.Color(WheelPos * 3, 255 - WheelPos * 3, 0);
-}
-void colorWipe(uint32_t c, uint8_t wait) {
-    for (uint16_t i = 0; i < strip.numPixels(); i++) {
-        strip.setPixelColor(i, c);
-        strip.show();
-        delay(wait);
-    }
-}
+    return pixels.Color(WheelPos * 3, 255 - WheelPos * 3, 0);
+};
+
+void (*spiralLightFunc[15])() = {};
 void loop() {
    // Only read if a byte is available
-
+    spiralLightFunc[0x0A] = spiralGreen;
+    spiralLightFunc[0x0B] = spiralRed;
+    spiralLightFunc[0x0C] = spiralBlue;
+    spiralLightFunc[0x0D] = spiralYellow;
+    spiralLightFunc[0x0E] = spiralPurple;
    unsigned long currentMillis = millis();
 
     if (currentMillis - previousMillis >= interval)
@@ -150,12 +173,11 @@ void loop() {
             solidlight[b - 1]();
         }
     }
-	else if (b >= 0x0A && b <= 0x0E) {
-		if (spiralLightFunc[b - 10] != nullptr) {
-			spiralLightFunc[b - 10]();
-		}
-	}
+	else if (b < 15 && spiralLightFunc[b] != nullptr) {
+    spiralLightFunc[b]();
+}
   }
+  
 }
 
 

@@ -22,37 +22,37 @@ namespace Busy_Light
         private string RedirectUri = Environment.GetEnvironmentVariable("REDIRECT_URI");
         private DeviceWatcher watcher;
         private DateTime _lastHeartbeatTime = DateTime.MinValue;
-
+        public bool IsRotating { get; set; }
         private const int HEARTBEAT_TIMEOUT_SECONDS = 10;
 
         private System.Threading.Timer? _heartbeatTimer;
 
         public static event Action<byte> OnBrightnessReceived;
-        
-        
-      /*  public string textBox1_Text
-        {
-            get { return textBox1.Text; }
-            set { textBox1.Text = value; }
-        }
-        public bool UpdateConnectionStatus()
-        {
-            if (ComPortListener.IsConnected)
-            {
-                textBox1_Text = "Connected";
-                textBox1.BackColor = Color.Green;
-                return true;
-            }
-            else
-            {
-                textBox1_Text = "Disconnected";
-                textBox1.BackColor = Color.Red;
-                return false;
-            }
-        }
-        
-        */
-        
+
+
+        /*  public string textBox1_Text
+          {
+              get { return textBox1.Text; }
+              set { textBox1.Text = value; }
+          }
+          public bool UpdateConnectionStatus()
+          {
+              if (ComPortListener.IsConnected)
+              {
+                  textBox1_Text = "Connected";
+                  textBox1.BackColor = Color.Green;
+                  return true;
+              }
+              else
+              {
+                  textBox1_Text = "Disconnected";
+                  textBox1.BackColor = Color.Red;
+                  return false;
+              }
+          }
+
+          */
+
         private Busy_Light.ServiceSettings _settingsService;
 
 
@@ -61,11 +61,11 @@ namespace Busy_Light
             MinimizeToTray();
 
         }
-       
+
         public Form1(RestClient restClient, TokenService tokenService, string redirectUri)
         {
-           
-           
+
+            System.Diagnostics.Debug.WriteLine($" Startup value: {IsRotating} ");
             //UpdateConnectionStatus();
             ComPortListener.ComPortHardwareIDFinder();
             this.redirectUri = redirectUri;
@@ -76,8 +76,8 @@ namespace Busy_Light
             trackBar1.Scroll += trackBar1_Scroll;
             trackBar1.Value = _settingsService.Settings.Brightness; // start at max (100%)
             checkBox1.Checked = _settingsService.Settings.StartWithWindows;
-           
-            
+
+
             // Update label initially
             UpdateBrightnessLabel(trackBar1.Value);
 
@@ -87,7 +87,7 @@ namespace Busy_Light
 
         public void UpdateBrightnessLabel(int value)
         {
-            var settingsService = new Busy_Light.ServiceSettings()  ;
+            var settingsService = new Busy_Light.ServiceSettings();
             int percent = (value * 100) / 255;
             label1.Text = $"Brightness: {percent}%";
             _settingsService.Settings.Brightness = value;
@@ -96,7 +96,7 @@ namespace Busy_Light
         }
         private WebSocketExtension _wsExtension;
         private string redirectUri;
-        
+
         private async Task StartWebSocket()
         {
 
@@ -133,29 +133,29 @@ namespace Busy_Light
 
 
         }
-       
+
         private async void Form1_Load(object sender, EventArgs e)
 
         {
             Debug.WriteLine("InFormLoad");
 
-           
+
 
             watcher = new DeviceWatcher();
             label7.Visible = false;
             System.Diagnostics.Debug.WriteLine("InFormLoad");
-           var token = _tokenService.Load();
+            var token = _tokenService.Load();
             if (token != null)
             {
                 try
                 {
-                   _restClient.token = new TokenInfo
-                   {
-                       access_token = token.access_token,
-                       refresh_token = token.refresh_token,
-                       expires_in = token.expires_in,
-                       token_type = token.token_type
-                   };
+                    _restClient.token = new TokenInfo
+                    {
+                        access_token = token.access_token,
+                        refresh_token = token.refresh_token,
+                        expires_in = token.expires_in,
+                        token_type = token.token_type
+                    };
 
                     System.Diagnostics.Debug.WriteLine($"Loaded token: {token.refresh_token}");
                     System.Diagnostics.Debug.WriteLine($"_rest client token: {_restClient.token.refresh_token} ");
@@ -176,7 +176,7 @@ namespace Busy_Light
                 }
 
             }
-            
+
             comboBox1.Items.Add("Available");
             comboBox1.Items.Add("Unavailable");
             combox2();
@@ -191,7 +191,7 @@ namespace Busy_Light
                 comboBox3.Items.Add(color);
                 comboBox4.Items.Add(color);
             }
-            
+
         }
         private void trackBar1_Scroll(object sender, EventArgs e)
         {
@@ -240,27 +240,32 @@ namespace Busy_Light
             colors();
         }
         public string ocColor { get; set; }
+
         private void combox2_SelectionChanged(object sender, EventArgs e)
         {
             MessageBox.Show($"Selected color: {comboBox2.SelectedItem}");
-            
-            try { 
-            string selectedColor = comboBox2.SelectedItem.ToString();
 
-            byte command = selectedColor switch
+            try
             {
-                "Red" => 0x02,
-                "Green" => 0x01,
-                "Blue" => 0x05,
-                "Yellow" => 0x06,
-                "Purple" => 0x07,
-                _ => 0x10 // default to Red
-            };
-            
-           
-                    ComPortListener.heartbeatManager.SendData(new byte[] { command });
-                    MessageBox.Show($"Sent color command: {command:X2} for {selectedColor}", "Color Command", MessageBoxButtons.OK, MessageBoxIcon.Information);
-             
+                string selectedColor = comboBox2.SelectedItem.ToString();
+                byte command = (IsRotating, selectedColor) switch
+                {
+                    (true, "Green") => 0x0A,
+                    (true, "Red") => 0x0B,
+                    (true, "Blue") => 0x0C,
+                    (true, "Yellow") => 0x0D,
+                    (true, "Purple") => 0x0E,
+                    (false, "Green") => 0x01,
+                    (false, "Red") => 0x02,
+                    (false, "Blue") => 0x05,
+                    (false, "Yellow") => 0x06,
+                    (false, "Purple") => 0x07,
+                    _ => 0x10
+                };
+
+                ComPortListener.heartbeatManager.SendData(new byte[] { command });
+                MessageBox.Show($"Sent color command: {command:X2} for {selectedColor}", "Color Command", MessageBoxButtons.OK, MessageBoxIcon.Information);
+
             }
             catch (Exception ex)
             {
@@ -354,10 +359,10 @@ namespace Busy_Light
         }
         private void Log(string message)
         {
-           string path = Path.Combine(
-                     Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-                     "RedDenSoftware",
-                     "BusyLight", "app.log");
+            string path = Path.Combine(
+                      Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                      "RedDenSoftware",
+                      "BusyLight", "app.log");
 
             File.AppendAllText(path,
                 $"{DateTime.Now:yyyy-MM-dd HH:mm:ss} - {message}{Environment.NewLine}");
@@ -505,11 +510,11 @@ namespace Busy_Light
                 MessageBox.Show("Please select an option first.");
                 return;
             }
-            
+
             switch (comboBox1.SelectedItem.ToString())
             {
                 case "Available":
-                   ComPortFunctions.ManualStatusChange("Available");
+                    ComPortFunctions.ManualStatusChange("Available");
                     break;
 
                 case "Unavailable":
@@ -522,7 +527,7 @@ namespace Busy_Light
         {
 
         }
-        
+
         private void Form1_FormClosing(object sender, FormClosingEventArgs e)
         {
             if (!reallyClose)
@@ -535,7 +540,7 @@ namespace Busy_Light
             {
                 // Actually close
                 _settingsService.Save();
-                
+
                 ComPortListener.heartbeatManager.Dispose();
 
                 if (trayIcon != null)
@@ -587,10 +592,20 @@ namespace Busy_Light
             label7.Text = "Busy Light v1.0\n\nDeveloped by Red Den Software\n\nThis application connects to your RingCentral account to monitor your presence status\n\n and updates a connected busy light accordingly. It also allows manual control of the light\n\n and customization of settings.\n\nFor support, please contact support@redden.dev";
             label7.Visible = true;
         }
-        
+
         private void label7_Click(object sender, EventArgs e)
         {
 
+        }
+
+        private void checkBox3_CheckedChanged(object sender, EventArgs e)
+        {
+            if (sender is CheckBox chk)
+            {
+                bool isChecked = chk.Checked; // Use 'chk' instead of the form control directly
+                IsRotating = isChecked;
+                Debug.WriteLine($"IsRotating: {IsRotating}");
+            }
         }
     }
 }

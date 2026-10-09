@@ -53,6 +53,7 @@ namespace Busy_Light
             label6 = new Label();
             comboBox4 = new ComboBox();
             label7 = new Label();
+            checkBox3 = new CheckBox();
             ((System.ComponentModel.ISupportInitialize)trackBar1).BeginInit();
             SuspendLayout();
             // 
@@ -138,7 +139,7 @@ namespace Busy_Light
             // Info
             // 
             Info.FlatStyle = FlatStyle.Popup;
-            Info.Font = new Font("Arial Rounded MT Bold", 14.25F, FontStyle.Italic, GraphicsUnit.Point);
+            Info.Font = new Font("Arial Rounded MT Bold", 14.25F, FontStyle.Italic);
             Info.ForeColor = SystemColors.ControlDark;
             Info.Location = new Point(11, 294);
             Info.Margin = new Padding(4);
@@ -153,7 +154,7 @@ namespace Busy_Light
             // button2
             // 
             button2.FlatStyle = FlatStyle.Popup;
-            button2.Font = new Font("Arial Rounded MT Bold", 14.25F, FontStyle.Italic, GraphicsUnit.Point);
+            button2.Font = new Font("Arial Rounded MT Bold", 14.25F, FontStyle.Italic);
             button2.ForeColor = SystemColors.ControlDark;
             button2.Location = new Point(11, 14);
             button2.Margin = new Padding(4);
@@ -264,12 +265,23 @@ namespace Busy_Light
             // label7
             // 
             label7.AutoSize = true;
-            label7.Font = new Font("Arial", 10F, FontStyle.Regular, GraphicsUnit.Point);
+            label7.Font = new Font("Arial", 10F);
             label7.Location = new Point(181, 14);
             label7.Name = "label7";
             label7.Size = new Size(45, 16);
             label7.TabIndex = 19;
             label7.Text = "label7";
+            // 
+            // checkBox3
+            // 
+            checkBox3.AutoSize = true;
+            checkBox3.Location = new Point(186, 138);
+            checkBox3.Name = "checkBox3";
+            checkBox3.Size = new Size(180, 22);
+            checkBox3.TabIndex = 20;
+            checkBox3.Text = "Rotating Status Light?";
+            checkBox3.UseVisualStyleBackColor = true;
+            checkBox3.CheckedChanged += checkBox3_CheckedChanged;
             // 
             // Form1
             // 
@@ -277,6 +289,7 @@ namespace Busy_Light
             AutoScaleDimensions = new SizeF(9F, 18F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(784, 366);
+            Controls.Add(checkBox3);
             Controls.Add(label7);
             Controls.Add(label6);
             Controls.Add(comboBox4);
@@ -296,7 +309,7 @@ namespace Busy_Light
             Controls.Add(label2);
             Controls.Add(label1);
             Controls.Add(trackBar1);
-            Font = new Font("Arial", 12F, FontStyle.Regular, GraphicsUnit.Point);
+            Font = new Font("Arial", 12F);
             FormBorderStyle = FormBorderStyle.FixedSingle;
             Icon = (Icon)resources.GetObject("$this.Icon");
             Margin = new Padding(5);
@@ -331,5 +344,6 @@ namespace Busy_Light
         private Label label6;
         private ComboBox comboBox4;
         private Label label7;
+        private CheckBox checkBox3;
     }
 }
