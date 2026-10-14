@@ -24,6 +24,7 @@ const long interval = 5000;       // interval at which to run the function (mill
 #define DELAYVAL 500 // Time (in milliseconds) to pause between pixels
 int runCount = 0;
 const int maxRuns = 2;
+byte cancellationToken = 0xFE;
 int currentBrightness = 0;
 void setup() {
   // These lines are specifically to support the Adafruit Trinket 5V 16 MHz.
@@ -41,9 +42,18 @@ void setup() {
 
 void rotatePixels(uint32_t color, int wait) {
   int count = pixels.numPixels();
-  byte s = Serial.read();
-  if (s = 0x03 || 0x55){
-    while (true) {
+  
+while (true){
+  if (Serial.available() > 0){
+    byte s = Serial.read();
+
+    if (s == cancellationToken) {
+                pixels.clear();
+                pixels.show();
+                return;
+            }
+  }
+    
     for (int i = 0; i < count; i++) {
    // Set all pixel colors to 'off'
     pixels.clear();
@@ -54,12 +64,20 @@ void rotatePixels(uint32_t color, int wait) {
     
     pixels.show();
     delay(wait);
-  }
-  }
+
+     if (Serial.available() > 0) {
+                byte s = Serial.read();
+
+                if (s == cancellationToken) {
+                    pixels.clear();
+                    pixels.show();
+                    return;
+                }
+            }
+    }
 }
-  
 }
-}
+
 void solidblue(){
   pixels.fill(blue,0,255);
   pixels.show();
@@ -159,10 +177,7 @@ void loop() {
     
   if (Serial.available() > 0) {
     byte b = Serial.read();
-    if (b == 0x55) {
-        Serial.write(0xAA);
-    }
-    else if (b == 0x03) {
+     if (b == 0x03) {
         while (Serial.available() == 0);
 
         currentBrightness = Serial.read();
@@ -181,7 +196,7 @@ void loop() {
     }
 	else if (b < 15 && spiralLightFunc[b] != nullptr) {
     spiralLightFunc[b]();
-}
+  }
   }
   
 }

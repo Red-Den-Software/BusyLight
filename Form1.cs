@@ -247,6 +247,8 @@ namespace Busy_Light
 
             try
             {
+                ComPortListener.heartbeatManager.SendData(new byte[] {0xFE});
+                Debug.WriteLine($"Sent reset command. {0xFE:X2}");
                 string selectedColor = comboBox2.SelectedItem.ToString();
                 byte command = (IsRotating, selectedColor) switch
                 {
