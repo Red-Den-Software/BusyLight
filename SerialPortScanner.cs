@@ -33,7 +33,7 @@ namespace Busy_Light
 
         private const int HEARTBEAT_TIMEOUT_SECONDS = 10;
         private const int RECONNECT_DELAY_MS = 2000;
-
+        const byte HEARTBEAT_BYTE = 0x3F;
         private System.Threading.Timer? _heartbeatTimer;
 
         public event Action<byte>? OnHeartbeatReceived;
@@ -63,14 +63,14 @@ namespace Busy_Light
                 1000);
         }
 
-
+    
         public void Start()
         {
             if (_cts != null && !_cts.IsCancellationRequested)
                 return;
 
             _cts = new CancellationTokenSource();
-
+            Debug.WriteLine($"Starting SerialHeartBeatManager for {_portName} at {_baudRate} baud.");
             _readLoopTask = Task.Run(
                 () => ConnectionLoopAsync(_cts.Token));
         }
@@ -80,11 +80,14 @@ namespace Busy_Light
         {
             while (!token.IsCancellationRequested)
             {
+               
                 try
                 {
                     // Port is not open - try to open it
                     if (!_serialPort.IsOpen)
                     {
+                        Debug.WriteLine(
+                            $"Serial port {_portName} is not open. Attempting to open...");
                         TryOpenPort();
 
                         if (!_serialPort.IsOpen)
@@ -95,6 +98,8 @@ namespace Busy_Light
                     }
 
                     // Read data while port is open
+                    Debug.WriteLine(
+                        $"Serial port {_portName} is open. Starting read loop...");
                     await ReadLoopAsync(token);
                 }
                 catch (OperationCanceledException)
@@ -188,7 +193,7 @@ namespace Busy_Light
                     {
                         int data = _serialPort.ReadByte();
 
-                        if (data >= 0)
+                        if (data >= 0 && data != HEARTBEAT_BYTE)
                         {
                             Debug.WriteLine(
                                 $"RECEIVED: 0x{data:X2}");
