@@ -35,7 +35,7 @@ namespace Busy_Light
         private const int RECONNECT_DELAY_MS = 2000;
         const byte HEARTBEAT_BYTE = 0x3F;
         private System.Threading.Timer? _heartbeatTimer;
-
+        byte cancellationToken = 0xFE;
         public event Action<byte>? OnHeartbeatReceived;
         public event Action<bool>? OnConnectionStatusChanged;
 
@@ -407,9 +407,9 @@ namespace Busy_Light
 
             try
             {
+                
                 byte command = 0x03;
                 byte brightness = (byte)Math.Clamp(value, 0, 255);
-
                 byte[] data =
                 {
             command,

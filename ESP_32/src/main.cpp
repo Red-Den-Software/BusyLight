@@ -40,42 +40,173 @@ void setup() {
 
 }
 
-void rotatePixels(uint32_t color, int wait) {
-  int count = pixels.numPixels();
-  
-while (true){
-  if (Serial.available() > 0){
-    byte s = Serial.read();
+enum LedMode {
+    MODE_OFF,
+    MODE_SOLID,
+    MODE_SPIRAL
+};
 
-    if (s == cancellationToken) {
-                pixels.clear();
-                pixels.show();
-                return;
-            }
-  }
-    
-    for (int i = 0; i < count; i++) {
-   // Set all pixel colors to 'off'
+LedMode ledMode = MODE_OFF;
+
+uint32_t activeColor = 0;
+int spiralPosition = 0;
+
+unsigned long lastSpiralStep = 0;
+const unsigned long spiralInterval = 50;
+
+bool waitingForBrightness = false;
+
+void renderLeds()
+{
     pixels.clear();
-    // Turn on the current pixel and a few trailing ones for a "comet" trail effect
-    pixels.setPixelColor(i, color);
-     pixels.setPixelColor((i - 1 + count) % count, color);
-            pixels.setPixelColor((i - 2 + count) % count, color);
-    
+
+    if (ledMode == MODE_SOLID)
+    {
+        pixels.fill(activeColor, 0, NUMPIXELS);
+    }
+    else if (ledMode == MODE_SPIRAL)
+    {
+        int count = pixels.numPixels();
+
+        // Preserve your existing three-LED comet trail.
+        for (int trail = 0; trail < 3; trail++)
+        {
+            int index =
+                (spiralPosition - trail + count) % count;
+
+            pixels.setPixelColor(index, activeColor);
+        }
+    }
+
     pixels.show();
-    delay(wait);
+}
 
-     if (Serial.available() > 0) {
-                byte s = Serial.read();
+void startSolid(uint32_t color)
+{
+    activeColor = color;
+    ledMode = MODE_SOLID;
+    renderLeds();
+}
 
-                if (s == cancellationToken) {
-                    pixels.clear();
-                    pixels.show();
-                    return;
-                }
-            }
+void startSpiral(uint32_t color)
+{
+    activeColor = color;
+    ledMode = MODE_SPIRAL;
+
+    // Start a new spiral when a new spiral command is received.
+    spiralPosition = 0;
+    lastSpiralStep = millis();
+
+    renderLeds();
+}
+
+void stopAnimation()
+{
+    ledMode = MODE_OFF;
+    pixels.clear();
+    pixels.show();
+}
+
+void processSerialCommands()
+{
+    while (Serial.available() > 0)
+    {
+        byte command = Serial.read();
+
+        // The next byte is the brightness value.
+        if (waitingForBrightness)
+        {
+            currentBrightness = command;
+
+            if (currentBrightness < 1)
+                currentBrightness = 1;
+
+            pixels.setBrightness(currentBrightness);
+            waitingForBrightness = false;
+
+            // Redraw the CURRENT frame, not a new spiral.
+            renderLeds();
+            continue;
+        }
+
+        if (command == 0x03)
+        {
+            waitingForBrightness = true;
+            continue;
+        }
+
+        if (command == cancellationToken) // 0xFE
+        {
+            stopAnimation();
+            continue;
+        }
+
+        // Static colors
+        switch (command)
+        {
+            case 0x01:
+                startSolid(green);
+                break;
+
+            case 0x02:
+                startSolid(red);
+                break;
+
+            case 0x05:
+                startSolid(blue);
+                break;
+
+            case 0x06:
+                startSolid(yellow);
+                break;
+
+            case 0x07:
+                startSolid(purple);
+                break;
+
+            // Spiral colors
+            case 0x0A:
+                startSpiral(green);
+                break;
+
+            case 0x0B:
+                startSpiral(red);
+                break;
+
+            case 0x0C:
+                startSpiral(blue);
+                break;
+
+            case 0x0D:
+                startSpiral(yellow);
+                break;
+
+            case 0x0E:
+                startSpiral(purple);
+                break;
+
+            default:
+                break;
+        }
     }
 }
+
+void updateSpiral()
+{
+    if (ledMode != MODE_SPIRAL)
+        return;
+
+    unsigned long now = millis();
+
+    if (now - lastSpiralStep >= spiralInterval)
+    {
+        lastSpiralStep = now;
+
+        spiralPosition =
+            (spiralPosition + 1) % NUMPIXELS;
+
+        renderLeds();
+    }
 }
 
 void solidblue(){
@@ -102,25 +233,7 @@ void solidgreen(){
   pixels.fill(green, 0, 255);
   pixels.show();
 }
-void spiralGreen() {
-    rotatePixels(green, 50);
-}
 
-void spiralRed() {
-    rotatePixels(red, 50);
-}
-
-void spiralBlue() {
-    rotatePixels(blue, 50);
-}
-
-void spiralYellow() {
-    rotatePixels(yellow, 50);
-}
-
-void spiralPurple() {
-    rotatePixels(purple, 50);
-}
 void lights() {
   if (Serial.available() > 0) {
     byte incomingByte = Serial.read();
@@ -132,19 +245,6 @@ void lights() {
     }
   }
 } 
-
-void spiralLight(){
-  rotatePixels(pixels.Color(255,255,0), 50);
-  pixels.show();
-}
-void (*solidlight[])() = {
-    solidgreen,    // 0x01
-    solidred,      // 0x02
-    spiralLight,   // 0x04
-    solidblue,     // 0x05
-    solidyellow,   // 0x06
-    solidpurple    // 0x07
-};
 
 uint32_t Wheel(byte WheelPos) {
     WheelPos = 255 - WheelPos;
@@ -161,43 +261,20 @@ uint32_t Wheel(byte WheelPos) {
 
 void (*spiralLightFunc[15])() = {};
 void loop() {
-   // Only read if a byte is available
-    spiralLightFunc[0x0A] = spiralGreen;
-    spiralLightFunc[0x0B] = spiralRed;
-    spiralLightFunc[0x0C] = spiralBlue;
-    spiralLightFunc[0x0D] = spiralYellow;
-    spiralLightFunc[0x0E] = spiralPurple;
-   unsigned long currentMillis = millis();
+   // Handle brightness, color, and cancellation commands.
+    processSerialCommands();
+
+    // Advance the spiral only when the next frame is due.
+    updateSpiral();
+
+    // Preserve your existing heartbeat behavior.
+    unsigned long currentMillis = millis();
 
     if (currentMillis - previousMillis >= interval)
     {
         previousMillis = currentMillis;
         Serial.write(0x3F);
     }
-    
-  if (Serial.available() > 0) {
-    byte b = Serial.read();
-     if (b == 0x03) {
-        while (Serial.available() == 0);
-
-        currentBrightness = Serial.read();
-
-        if (currentBrightness < 1)
-            currentBrightness = 1;
-
-        pixels.setBrightness(currentBrightness);
-        pixels.show();
-    }
-    else if (b >= 0x01 && b <= 0x07) {
-
-        if (solidlight[b - 1] != nullptr) {
-            solidlight[b - 1]();
-        }
-    }
-	else if (b < 15 && spiralLightFunc[b] != nullptr) {
-    spiralLightFunc[b]();
-  }
-  }
   
 }
 
