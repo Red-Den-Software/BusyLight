@@ -30,28 +30,30 @@ namespace Busy_Light
         public static event Action<byte> OnBrightnessReceived;
 
 
-        /*  public string textBox1_Text
+        public string label8_Text
           {
-              get { return textBox1.Text; }
-              set { textBox1.Text = value; }
+              get { return label8.Text; }
+              set { label8.Text = value; }
           }
           public bool UpdateConnectionStatus()
           {
               if (ComPortListener.IsConnected)
               {
-                  textBox1_Text = "Connected";
-                  textBox1.BackColor = Color.Green;
-                  return true;
+                  label8_Text = "Connected";
+                  label8.BackColor = Color.Green;
+                label8.Font = new Font(label8.Font, FontStyle.Bold);
+                return true;
               }
               else
               {
-                  textBox1_Text = "Disconnected";
-                  textBox1.BackColor = Color.Red;
-                  return false;
+                  label8_Text = "Disconnected";
+                  label8.BackColor = Color.Red;
+                label8.Font = new Font(label8.Font, FontStyle.Bold);
+                return false;
               }
           }
 
-          */
+         
 
         private Busy_Light.ServiceSettings _settingsService;
 
@@ -66,7 +68,7 @@ namespace Busy_Light
         {
 
             System.Diagnostics.Debug.WriteLine($" Startup value: {IsRotating} ");
-            //UpdateConnectionStatus();
+
             ComPortListener.ComPortHardwareIDFinder();
             this.redirectUri = redirectUri;
             _settingsService = new Busy_Light.ServiceSettings();
@@ -76,9 +78,23 @@ namespace Busy_Light
             trackBar1.Scroll += trackBar1_Scroll;
             trackBar1.Value = _settingsService.Settings.Brightness; // start at max (100%)
             checkBox1.Checked = _settingsService.Settings.StartWithWindows;
-
-
+            comboBox2.DrawMode = DrawMode.OwnerDrawFixed;
+            comboBox2.ItemHeight = 22;
+            comboBox3.DrawMode = DrawMode.OwnerDrawFixed;
+            comboBox3.ItemHeight = 22;
+            comboBox4.DrawMode = DrawMode.OwnerDrawFixed;
+            comboBox4.ItemHeight = 22;
+            AddColorsToComboBox(comboBox2);
+            AddColorsToComboBox(comboBox3);
+            AddColorsToComboBox(comboBox4);
+            label8.TabStop = false;
+            label8.BorderStyle = BorderStyle.None;
+            label8.TextAlign = ContentAlignment.MiddleCenter;
+            comboBox2.DrawItem += ComboBox_DrawItem;
+            comboBox3.DrawItem += ComboBox_DrawItem;
+            comboBox4.DrawItem += ComboBox_DrawItem;
             // Update label initially
+            UpdateConnectionStatus();
             UpdateBrightnessLabel(trackBar1.Value);
 
         }
@@ -225,29 +241,53 @@ namespace Busy_Light
 
 
         }
-        private void comboBox2_DrawItem(object sender, DrawItemEventArgs e)
-        {
-            // Custom painting logic for comboBox2
-            // For example, you can draw a rectangle or change the background color
-
-        }
         private void colors()
         {
 
-            
 
+
+        }
+        private void DrawItems(ComboBox comboBox, DrawItemEventArgs e)
+        {
+            if (e.Index < 0) return;
+            string colorName = comboBox.Items[e.Index].ToString();
+            Color color = Color.FromName(colorName);
+            e.DrawBackground();
+            using (Brush brush = new SolidBrush(color))
+            {
+                e.Graphics.FillRectangle(brush, e.Bounds.X + 3, e.Bounds.Y + 3, 20, e.Bounds.Height - 6);
+            }
+            using (Brush brush = new SolidBrush(e.ForeColor))
+            {
+                e.Graphics.DrawString(colorName, e.Font, brush, e.Bounds.X + 30, e.Bounds.Y + 3);
+            }
+            e.DrawFocusRectangle();
+        }
+        private void ComboBox_DrawItem(object sender, DrawItemEventArgs e)
+        {
+            DrawItems((ComboBox)sender, e);
+        }
+        private void AddColorsToComboBox(ComboBox comboBox)
+        {
+            string[] colorOptions =
+            {
+        "Red", "Green", "Blue", "Yellow", "Purple"
+             };
+
+            if (comboBox.Items.Count == 0)
+            {
+                foreach (string color in colorOptions)
+                {
+                    comboBox.Items.Add(color);
+                }
+            }
+
+            comboBox.DrawMode = DrawMode.OwnerDrawFixed;
+            comboBox.ItemHeight = 22;
         }
         private void comboBox2_Click(object sender, EventArgs e)
         {
-            string[] coloroptions = new string[] { "Red", "Green", "Blue", "Yellow", "Purple" };
-            foreach (string color in coloroptions)
-            {
-
-                comboBox2.Items.Add(color);
-                comboBox3.Items.Add(color);
-                comboBox4.Items.Add(color);
-            }
-            Type colorType = typeof(Color);
+          
         }
         private void combox2() //OnCall Lighting
         {
@@ -261,11 +301,37 @@ namespace Busy_Light
         {
             MessageBox.Show($"Selected color: {comboBox2.SelectedItem}");
 
+
             try
             {
-                ComPortListener.heartbeatManager.SendData(new byte[] { 0xFE });
-                Debug.WriteLine($"Sent reset command. {0xFE:X2}");
+                // Make sure a color has been selected.
+                if (comboBox2.SelectedItem == null)
+                {
+                    Debug.WriteLine("No color selected.");
+                    return;
+                }
+
+                // Make sure the heartbeat manager is available.
+                if (ComPortListener.heartbeatManager == null)
+                {
+                    Debug.WriteLine("Heartbeat manager is not started.");
+
+                    MessageBox.Show(
+                        "The COM port is not ready. Please ensure the COM port is connected and try again.",
+                        "Error",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Error);
+                    comboBox2.SelectedIndex = -1;
+                    return;
+                }
+
                 string selectedColor = comboBox2.SelectedItem.ToString();
+
+                // Send the reset command before changing colors.
+                ComPortListener.heartbeatManager.SendData(new byte[] { 0xFE });
+
+                Debug.WriteLine("Sent reset command: FE");
+
                 byte command = (IsRotating, selectedColor) switch
                 {
                     (true, "Green") => 0x0A,
@@ -273,32 +339,34 @@ namespace Busy_Light
                     (true, "Blue") => 0x0C,
                     (true, "Yellow") => 0x0D,
                     (true, "Purple") => 0x0E,
+
                     (false, "Green") => 0x01,
                     (false, "Red") => 0x02,
                     (false, "Blue") => 0x05,
                     (false, "Yellow") => 0x06,
                     (false, "Purple") => 0x07,
+
                     _ => 0x10
                 };
 
                 ComPortListener.heartbeatManager.SendData(new byte[] { command });
-                MessageBox.Show($"Sent color command: {command:X2} for {selectedColor}", "Color Command", MessageBoxButtons.OK, MessageBoxIcon.Information);
 
+                Debug.WriteLine(
+                    $"Sent color command: {command:X2} for {selectedColor}");
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"Failed to send color command: {ex.Message}");
+                Debug.WriteLine($"Color selection error: {ex}");
+
+                MessageBox.Show(
+                    $"Failed to send color command:\n{ex.Message}",
+                    "Error",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
             }
-        }
-        private void comboBox2_SelectedIndexChanged(object sender, EventArgs e)
-        {
 
         }
-        private void comboBox1_KeyPress(object sender, KeyPressEventArgs e)
-        {
-            // This will prevent any key from being typed into the text portion
-            e.Handled = true;
-        }
+
         private void label2_Click(object sender, EventArgs e)
         {
 

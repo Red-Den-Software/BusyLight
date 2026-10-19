@@ -38,8 +38,6 @@ namespace Busy_Light
             label2 = new Label();
             comboBox1 = new ComboBox();
             button1 = new Button();
-            btnLogin = new Button();
-            textBox1 = new TextBox();
             Info = new Button();
             button2 = new Button();
             checkBox1 = new CheckBox();
@@ -54,6 +52,8 @@ namespace Busy_Light
             comboBox4 = new ComboBox();
             label7 = new Label();
             checkBox3 = new CheckBox();
+            label8 = new Label();
+            button3 = new Button();
             ((System.ComponentModel.ISupportInitialize)trackBar1).BeginInit();
             SuspendLayout();
             // 
@@ -72,7 +72,7 @@ namespace Busy_Light
             // label1
             // 
             label1.AutoSize = true;
-            label1.Location = new Point(554, 14);
+            label1.Location = new Point(518, 14);
             label1.Margin = new Padding(5, 0, 5, 0);
             label1.Name = "label1";
             label1.Size = new Size(86, 18);
@@ -113,28 +113,6 @@ namespace Busy_Light
             button1.Text = "Submit";
             button1.UseVisualStyleBackColor = true;
             button1.Click += button1_Click;
-            // 
-            // btnLogin
-            // 
-            btnLogin.Location = new Point(544, 333);
-            btnLogin.Margin = new Padding(5);
-            btnLogin.Name = "btnLogin";
-            btnLogin.Size = new Size(96, 26);
-            btnLogin.TabIndex = 6;
-            btnLogin.Text = "Login";
-            btnLogin.UseVisualStyleBackColor = true;
-            btnLogin.Click += btnLogin_Click;
-            // 
-            // textBox1
-            // 
-            textBox1.AccessibleName = "textBox1";
-            textBox1.Location = new Point(655, 333);
-            textBox1.Margin = new Padding(5);
-            textBox1.Name = "textBox1";
-            textBox1.Size = new Size(127, 26);
-            textBox1.TabIndex = 7;
-            textBox1.TextAlign = HorizontalAlignment.Center;
-            textBox1.TextChanged += textBox1_TextChanged;
             // 
             // Info
             // 
@@ -284,12 +262,37 @@ namespace Busy_Light
             checkBox3.UseVisualStyleBackColor = true;
             checkBox3.CheckedChanged += checkBox3_CheckedChanged;
             // 
+            // label8
+            // 
+            label8.Location = new Point(650, 331);
+            label8.Name = "label8";
+            label8.Size = new Size(122, 26);
+            label8.TabIndex = 21;
+            label8.Text = "label8";
+            // 
+            // button3
+            // 
+            button3.FlatStyle = FlatStyle.Popup;
+            button3.Font = new Font("Arial Rounded MT Bold", 14.25F, FontStyle.Italic);
+            button3.ForeColor = SystemColors.ControlDark;
+            button3.Location = new Point(11, 218);
+            button3.Margin = new Padding(4);
+            button3.Name = "button3";
+            button3.Size = new Size(163, 54);
+            button3.TabIndex = 22;
+            button3.Text = "Login";
+            button3.TextAlign = ContentAlignment.MiddleLeft;
+            button3.UseVisualStyleBackColor = true;
+            button3.Click += btnLogin_Click;
+            // 
             // Form1
             // 
             AccessibleName = "Busy Light";
             AutoScaleDimensions = new SizeF(9F, 18F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(784, 366);
+            Controls.Add(button3);
+            Controls.Add(label8);
             Controls.Add(checkBox3);
             Controls.Add(label7);
             Controls.Add(label6);
@@ -303,8 +306,6 @@ namespace Busy_Light
             Controls.Add(checkBox1);
             Controls.Add(button2);
             Controls.Add(Info);
-            Controls.Add(textBox1);
-            Controls.Add(btnLogin);
             Controls.Add(button1);
             Controls.Add(comboBox1);
             Controls.Add(label2);
@@ -330,8 +331,6 @@ namespace Busy_Light
         private Label label2;
         private ComboBox comboBox1;
         private Button button1;
-        private Button btnLogin;
-        private TextBox textBox1;
         private Button Info;
         private Button button2;
         private CheckBox checkBox1;
@@ -346,5 +345,7 @@ namespace Busy_Light
         private ComboBox comboBox4;
         private Label label7;
         private CheckBox checkBox3;
+        private Label label8;
+        private Button button3;
     }
 }
