@@ -628,18 +628,23 @@ namespace Busy_Light
 
         private void Form1_FormClosing(object sender, FormClosingEventArgs e)
         {
+
+            
             if (!reallyClose)
             {
                 // Cancel the close and minimize to tray
                 e.Cancel = true;
                 MinimizeToTray();
+                MessageBox.Show("The application is running in the background. It will continue to monitor your RingCentral presence and update the busy light accordingly. To exit completely, use the Exit option from the system tray icon.", "Busy Light", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
             else
             {
                 // Actually close
                 _settingsService.Save();
-
-                ComPortListener.heartbeatManager.Dispose();
+                if (ComPortListener.heartbeatManager != null)
+                {
+                    ComPortListener.heartbeatManager.Dispose();
+                }
 
                 if (trayIcon != null)
                 {
