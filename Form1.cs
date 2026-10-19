@@ -112,7 +112,7 @@ namespace Busy_Light
         {
             var settingsService = new Busy_Light.ServiceSettings();
             int percent = (value * 100) / 255;
-            label1.Text = $"Brightness: {percent}%";
+            label1.Text = $"Brightness:{percent}%";
             _settingsService.Settings.Brightness = value;
             ComPortListener.SendBrightnessToArduino(value); // send the raw 0-255 value
             _settingsService.Save();

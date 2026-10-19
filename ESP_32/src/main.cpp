@@ -37,9 +37,15 @@ void setup() {
   Serial.begin(9600);
   pixels.show();
   
+  delay(10000);
 
 }
-
+struct VersionInfo {
+	uint8_t major;
+	uint8_t minor;
+	uint8_t patch;
+    uint8_t git_sha;
+};
 enum LedMode {
     MODE_OFF,
     MODE_SOLID,
@@ -112,6 +118,7 @@ void processSerialCommands()
     while (Serial.available() > 0)
     {
         byte command = Serial.read();
+        
 
         // The next byte is the brightness value.
         if (waitingForBrightness)
@@ -128,18 +135,38 @@ void processSerialCommands()
             renderLeds();
             continue;
         }
+        if (versionControl) {
+            
+			int major = Serial.parseInt();
+            int minor = Serial.parseInt();
+            int patch = Serial.parseInt();
+            int git_sha = Serial.parseInt();
 
-        if (command == 0x03)
-        {
-            waitingForBrightness = true;
-            continue;
-        }
+           
+			if (currentVersion !=  ) {
+				Serial.write(0xFF); // Send error byte
+			}
+			else {
+				Serial.write(0x00); // Send success byte
+			}
+			
 
-        if (command == cancellationToken) // 0xFE
-        {
-            stopAnimation();
-            continue;
         }
+        switch (command) {
+		    case 0x03:
+			waitingForBrightness = true;
+			break;
+            case 0x06F:
+			
+			break;
+            case 0xFE:
+			stopAnimation();
+
+            break;
+			default:
+				break;
+        }
+       
 
         // Static colors
         switch (command)

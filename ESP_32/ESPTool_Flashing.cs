@@ -17,7 +17,7 @@ namespace Busy_Light.ESP_32
        public static void FlashESP32(string port, string firmwarePath)
         {
             // Construct the command to flash the ESP32
-            string command = $"esptool.exe --chip esp32 --port {port} --baud 460800 write_flash -z 0x1000 {firmwarePath}";
+            string command = $"esptool.exe --chip esp32 --port {port} --baud 9600 write_flash -z 0x1000 {firmwarePath}";
             // Start the process to execute the command
             var processInfo = new System.Diagnostics.ProcessStartInfo("cmd.exe", "/c " + command)
             {

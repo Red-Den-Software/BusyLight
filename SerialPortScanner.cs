@@ -29,6 +29,7 @@ namespace Busy_Light
         private DateTime _lastHeartbeatTime = DateTime.MinValue;
 
         private readonly string _portName;
+        public string PortName => _portName;
         private readonly int _baudRate;
 
         private const int HEARTBEAT_TIMEOUT_SECONDS = 10;
@@ -228,12 +229,12 @@ namespace Busy_Light
         private void ProcessIncomingData(byte data)
         {
             const byte HEARTBEAT_BYTE = 0x3F;
-
+            const byte VERSION_BYTE = 0x06F;
             Debug.WriteLine(
                 $"Received byte: 0x{data:X2}");
 
-            // Ignore everything except heartbeat
-            if (data != HEARTBEAT_BYTE)
+            // Ignore everything except heartbeat and version
+            if (data != HEARTBEAT_BYTE && data != VERSION_BYTE)
                 return;
 
             // Heartbeat received
