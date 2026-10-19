@@ -24,7 +24,7 @@ namespace Busy_Light
         private DateTime _lastHeartbeatTime = DateTime.MinValue;
         public bool IsRotating { get; set; }
         private const int HEARTBEAT_TIMEOUT_SECONDS = 10;
-
+        GroupBox deviceSettings = new GroupBox();
         private System.Threading.Timer? _heartbeatTimer;
 
         public static event Action<byte> OnBrightnessReceived;
@@ -46,7 +46,8 @@ namespace Busy_Light
               }
               else
               {
-                  label8_Text = "Disconnected";
+                //deviceSettings.Enabled = false;
+                label8_Text = "Disconnected";
                   label8.BackColor = Color.Red;
                 label8.Font = new Font(label8.Font, FontStyle.Bold);
                 return false;
@@ -93,6 +94,12 @@ namespace Busy_Light
             comboBox2.DrawItem += ComboBox_DrawItem;
             comboBox3.DrawItem += ComboBox_DrawItem;
             comboBox4.DrawItem += ComboBox_DrawItem;
+            deviceSettings.Controls.Add(comboBox4);
+            deviceSettings.Controls.Add(comboBox3);
+            deviceSettings.Controls.Add(comboBox2);
+            deviceSettings.Controls.Add(checkBox2);
+            deviceSettings.Controls.Add(checkBox3);
+            deviceSettings.Controls.Add(trackBar1);
             // Update label initially
             UpdateConnectionStatus();
             UpdateBrightnessLabel(trackBar1.Value);
@@ -149,7 +156,12 @@ namespace Busy_Light
 
 
         }
+        private void disableOnCallLighting()
+        {
+            
 
+            
+        }
         private async void Form1_Load(object sender, EventArgs e)
 
         {
