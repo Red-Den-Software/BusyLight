@@ -46,6 +46,7 @@ struct VersionInfo {
 	uint8_t patch;
     uint8_t git_sha;
 };
+Version currentVersion = { 1, 0, 0, "1234567" };
 enum LedMode {
     MODE_OFF,
     MODE_SOLID,
@@ -135,29 +136,48 @@ void processSerialCommands()
             renderLeds();
             continue;
         }
-        if (versionControl) {
-            
-			int major = Serial.parseInt();
-            int minor = Serial.parseInt();
-            int patch = Serial.parseInt();
-            int git_sha = Serial.parseInt();
+        void checkIncomingVersion()
+        {
+            if (!Serial.available())
+                return;
 
-           
-			if (currentVersion !=  ) {
-				Serial.write(0xFF); // Send error byte
-			}
-			else {
-				Serial.write(0x00); // Send success byte
-			}
-			
+            String message = Serial.readStringUntil('\n');
 
+            Version incoming;
+
+            if (!parseVersion(message, incoming))
+            {
+                Serial.println("Invalid version message");
+                return;
+            }
+
+            if (isNewerVersion(incoming, currentVersion))
+            {
+                Serial.println("New version available!");
+
+                // Handle firmware update or version notification here.
+            }
+            else if (incoming.major == currentVersion.major &&
+                incoming.minor == currentVersion.minor &&
+                incoming.patch == currentVersion.patch)
+            {
+                if (incoming.githubSha != currentVersion.githubSha)
+                    Serial.println("Same version, different Git commit");
+                else
+                    Serial.println("Already running this version");
+            }
+            else
+            {
+                Serial.println("Incoming version is older");
+            }
         }
+
         switch (command) {
 		    case 0x03:
 			waitingForBrightness = true;
 			break;
             case 0x06F:
-			
+			checkIncomingVersion();
 			break;
             case 0xFE:
 			stopAnimation();
