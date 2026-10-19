@@ -46,7 +46,7 @@ namespace Busy_Light
               }
               else
               {
-                //deviceSettings.Enabled = false;
+               // deviceSettings.Enabled = true;
                 label8_Text = "Disconnected";
                   label8.BackColor = Color.Red;
                 label8.Font = new Font(label8.Font, FontStyle.Bold);
@@ -94,12 +94,12 @@ namespace Busy_Light
             comboBox2.DrawItem += ComboBox_DrawItem;
             comboBox3.DrawItem += ComboBox_DrawItem;
             comboBox4.DrawItem += ComboBox_DrawItem;
-            deviceSettings.Controls.Add(comboBox4);
+            /*deviceSettings.Controls.Add(comboBox4);
             deviceSettings.Controls.Add(comboBox3);
             deviceSettings.Controls.Add(comboBox2);
             deviceSettings.Controls.Add(checkBox2);
             deviceSettings.Controls.Add(checkBox3);
-            deviceSettings.Controls.Add(trackBar1);
+            deviceSettings.Controls.Add(trackBar1);*/
             // Update label initially
             UpdateConnectionStatus();
             UpdateBrightnessLabel(trackBar1.Value);
@@ -223,7 +223,7 @@ namespace Busy_Light
    {
         comboBox1, checkBox1, label1, label2, checkBox2,
         button1, trackBar1, label4, label3, label5,
-        label6, comboBox3, comboBox4, comboBox2,
+        label6, comboBox3, comboBox4, comboBox2,checkBox3
    };
             foreach (var control in controls)
             {
