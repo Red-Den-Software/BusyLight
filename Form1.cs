@@ -182,17 +182,7 @@ namespace Busy_Light
             combox2();
 
         }
-        private void colors()
-        {
-            string[] coloroptions = new string[] { "Red", "Green", "Blue", "Yellow", "Purple" };
-            foreach (string color in coloroptions)
-            {
-                comboBox2.Items.Add(color);
-                comboBox3.Items.Add(color);
-                comboBox4.Items.Add(color);
-            }
-
-        }
+        
         private void trackBar1_Scroll(object sender, EventArgs e)
         {
             UpdateBrightnessLabel(trackBar1.Value);
@@ -235,10 +225,36 @@ namespace Busy_Light
 
 
         }
+        private void comboBox2_DrawItem(object sender, DrawItemEventArgs e)
+        {
+            // Custom painting logic for comboBox2
+            // For example, you can draw a rectangle or change the background color
+
+        }
+        private void colors()
+        {
+
+            
+
+        }
+        private void comboBox2_Click(object sender, EventArgs e)
+        {
+            string[] coloroptions = new string[] { "Red", "Green", "Blue", "Yellow", "Purple" };
+            foreach (string color in coloroptions)
+            {
+
+                comboBox2.Items.Add(color);
+                comboBox3.Items.Add(color);
+                comboBox4.Items.Add(color);
+            }
+            Type colorType = typeof(Color);
+        }
         private void combox2() //OnCall Lighting
         {
-            colors();
+            //colors();
+
         }
+
         public string ocColor { get; set; }
 
         private void combox2_SelectionChanged(object sender, EventArgs e)
@@ -247,7 +263,7 @@ namespace Busy_Light
 
             try
             {
-                ComPortListener.heartbeatManager.SendData(new byte[] {0xFE});
+                ComPortListener.heartbeatManager.SendData(new byte[] { 0xFE });
                 Debug.WriteLine($"Sent reset command. {0xFE:X2}");
                 string selectedColor = comboBox2.SelectedItem.ToString();
                 byte command = (IsRotating, selectedColor) switch
@@ -609,6 +625,8 @@ namespace Busy_Light
                 Debug.WriteLine($"IsRotating: {IsRotating}");
             }
         }
+
+       
     }
 }
 

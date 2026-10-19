@@ -56,7 +56,6 @@ namespace Busy_Light
                 Save(); // create file first time
             }
         }
-
         public void Save()
         {
             var options = new JsonSerializerOptions
