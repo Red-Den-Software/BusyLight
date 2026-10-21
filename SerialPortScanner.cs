@@ -9,6 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 using static rc_program.Program;
 using Busy_Light;
+using System.ComponentModel;
 
 namespace Busy_Light
 {
@@ -22,7 +23,7 @@ namespace Busy_Light
     {
         private SerialPort _serialPort;
         private readonly object _portLock = new object();
-
+        private ConnectionStatus _connectionStatus = new ConnectionStatus();
         private CancellationTokenSource? _cts;
         private Task? _readLoopTask;
 
@@ -38,7 +39,7 @@ namespace Busy_Light
         private System.Threading.Timer? _heartbeatTimer;
         byte cancellationToken = 0xFE;
         public event Action<byte>? OnHeartbeatReceived;
-        public event Action<bool>? OnConnectionStatusChanged;
+        
 
 
         public SerialHeartBeatManager(string port, int baudRate = 9600)
@@ -194,11 +195,20 @@ namespace Busy_Light
                     {
                         int data = _serialPort.ReadByte();
 
+                        if (int.TryParse(data.ToString(), out int parsedData))
+                        {
+                            ProcessIncomingData((byte)parsedData);
+                        }
+                        else
+                        {
+                            Debug.WriteLine($"Received non-integer data: {data}");
+                        }
+
+
                         if (data >= 0 && data != HEARTBEAT_BYTE)
                         {
                             Debug.WriteLine(
                                 $"RECEIVED: 0x{data:X2}");
-
                             ProcessIncomingData((byte)data);
                         }
                     }
@@ -239,19 +249,19 @@ namespace Busy_Light
 
             // Heartbeat received
             _lastHeartbeatTime = DateTime.UtcNow;
-
+            _connectionStatus.IsConnected = true;
             Debug.WriteLine(
                 "ESP32 heartbeat detected.");
 
             // This is the important reconnect detection
-            if (!ComPortListener.IsConnected)
+            if (!_connectionStatus.IsConnected)
             {
                 Debug.WriteLine(
                     "ESP32 RECONNECTED - heartbeat detected.");
 
-                ComPortListener.IsConnected = true;
+                _connectionStatus.IsConnected = true;
 
-                OnConnectionStatusChanged?.Invoke(true);
+                
             }
 
             OnHeartbeatReceived?.Invoke(data);
@@ -269,12 +279,12 @@ namespace Busy_Light
             if (elapsed.TotalSeconds >
                 HEARTBEAT_TIMEOUT_SECONDS)
             {
-                if (ComPortListener.IsConnected)
+                if (!_connectionStatus.IsConnected)
                 {
                     Debug.WriteLine(
                         $"ESP32 HEARTBEAT LOST. " +
                         $"Last heartbeat: {elapsed.TotalSeconds:F1}s ago.");
-
+                    _connectionStatus.IsConnected = false;
                     SetDisconnected();
                 }
             }
@@ -283,15 +293,15 @@ namespace Busy_Light
 
         private void SetDisconnected()
         {
-            if (ComPortListener.IsConnected)
+            if (!_connectionStatus.IsConnected)
             {
-                Debug.WriteLine(
-                    "ESP32 is disconnected.");
-
-                ComPortListener.IsConnected = false;
-
-                OnConnectionStatusChanged?.Invoke(false);
+                return;
             }
+            Debug.WriteLine(
+                "ESP32 is disconnected.");
+            _connectionStatus.IsConnected = false;
+
+            
         }
 
 
@@ -360,10 +370,34 @@ namespace Busy_Light
         }
     }
 
+    public class ConnectionStatus : INotifyPropertyChanged
+    {
+        private bool _isConnected;
+        public bool IsConnected
+        {
+            get => _isConnected;
+            set
+            {
+                if (_isConnected != value)
+                {
+                    _isConnected = value;
+                    OnPropertyChanged(nameof(IsConnected));
+                    Debug.WriteLine($"Inside of Set for connection Value: {IsConnected}");
+                }
+            }
+        }
+        public event PropertyChangedEventHandler PropertyChanged;
+        protected virtual void OnPropertyChanged(string propertyName)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+            Debug.WriteLine($"PropertyChanged fired: {propertyName}");
+            Debug.WriteLine($"Instance: {GetHashCode()}");
+        }
+    }
 
     public class ComPortListener
     {
-
+       
         private static SerialPort _serialPort;
         public static SerialHeartBeatManager heartbeatManager;
         public static bool ComPortHardwareIDFinder()
@@ -394,10 +428,8 @@ namespace Busy_Light
         }
 
 
+      
 
-
-        public static bool IsConnected;
-            
         public static void SendBrightnessToArduino(int value)
         {
             if (heartbeatManager == null)

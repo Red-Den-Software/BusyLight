@@ -52,7 +52,7 @@ namespace Busy_Light
             comboBox4 = new ComboBox();
             label7 = new Label();
             checkBox3 = new CheckBox();
-            label8 = new Label();
+            ConnectionStatusText = new Label();
             button3 = new Button();
             ((System.ComponentModel.ISupportInitialize)trackBar1).BeginInit();
             SuspendLayout();
@@ -261,13 +261,12 @@ namespace Busy_Light
             checkBox3.UseVisualStyleBackColor = true;
             checkBox3.CheckedChanged += checkBox3_CheckedChanged;
             // 
-            // label8
+            // ConnectionStatusText
             // 
-            label8.Location = new Point(650, 331);
-            label8.Name = "label8";
-            label8.Size = new Size(122, 26);
-            label8.TabIndex = 21;
-            label8.Text = "label8";
+            ConnectionStatusText.Location = new Point(650, 331);
+            ConnectionStatusText.Name = "ConnectionStatusText";
+            ConnectionStatusText.Size = new Size(122, 26);
+            ConnectionStatusText.TabIndex = 21;
             // 
             // button3
             // 
@@ -291,7 +290,7 @@ namespace Busy_Light
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(784, 366);
             Controls.Add(button3);
-            Controls.Add(label8);
+            Controls.Add(ConnectionStatusText);
             Controls.Add(checkBox3);
             Controls.Add(label7);
             Controls.Add(label6);
@@ -344,7 +343,7 @@ namespace Busy_Light
         private ComboBox comboBox4;
         private Label label7;
         private CheckBox checkBox3;
-        private Label label8;
+        private Label ConnectionStatusText;
         private Button button3;
     }
 }

@@ -26,31 +26,47 @@ namespace Busy_Light
         private const int HEARTBEAT_TIMEOUT_SECONDS = 10;
         GroupBox deviceSettings = new GroupBox();
         private System.Threading.Timer? _heartbeatTimer;
-
+        private ConnectionStatus _connectionStatus = new ConnectionStatus();
         public static event Action<byte> OnBrightnessReceived;
 
-
-        public string label8_Text
+        public void UpdateConnectionStatus()
         {
-            get { return label8.Text; }
-            set { label8.Text = value; }
-        }
-        public bool UpdateConnectionStatus()
-        {
-            if (ComPortListener.IsConnected)
+            Debug.WriteLine($"Form instance: {_connectionStatus.GetHashCode()}");
+            _connectionStatus.PropertyChanged += (sender, e) =>
             {
-                label8_Text = "Connected";
-                label8.BackColor = Color.Green;
-                label8.Font = new Font(label8.Font, FontStyle.Bold);
-                return true;
+                Debug.WriteLine($"FORM EVENT FIRED: {e.PropertyName}");
+                if (e.PropertyName != nameof(ConnectionStatus.IsConnected))
+                    return;
+
+                if (InvokeRequired)
+                {
+                    Invoke(new Action(UpdateConnectionStatusUI));
+                    return;
+                }
+
+                UpdateConnectionStatusUI();
+            };
+        }
+
+        private void UpdateConnectionStatusUI()
+        {
+            if (_connectionStatus.IsConnected)
+            {
+                ConnectionStatusText.Text = "Connected";
+                ConnectionStatusText.BackColor = Color.Green;
+                ConnectionStatusText.Font =
+                    new Font(ConnectionStatusText.Font, FontStyle.Bold);
+
+                Debug.WriteLine("Setting to Connected");
             }
             else
             {
-                // deviceSettings.Enabled = true;
-                label8_Text = "Disconnected";
-                label8.BackColor = Color.Red;
-                label8.Font = new Font(label8.Font, FontStyle.Bold);
-                return false;
+                ConnectionStatusText.Text = "Disconnected";
+                ConnectionStatusText.BackColor = Color.Red;
+                ConnectionStatusText.Font =
+                    new Font(ConnectionStatusText.Font, FontStyle.Bold);
+
+                Debug.WriteLine("Setting to Disconnected");
             }
         }
 
@@ -64,7 +80,7 @@ namespace Busy_Light
             MinimizeToTray();
 
         }
-
+        public static SerialHeartBeatManager _heartbeatmanager;
         public Form1(RestClient restClient, TokenService tokenService, string redirectUri)
         {
 
@@ -88,9 +104,9 @@ namespace Busy_Light
             AddColorsToComboBox(oncallColorBox);
             AddColorsToComboBox(comboBox3);
             AddColorsToComboBox(comboBox4);
-            label8.TabStop = false;
-            label8.BorderStyle = BorderStyle.None;
-            label8.TextAlign = ContentAlignment.MiddleCenter;
+            ConnectionStatusText.TabStop = false;
+            ConnectionStatusText.BorderStyle = BorderStyle.None;
+            ConnectionStatusText.TextAlign = ContentAlignment.MiddleCenter;
             oncallColorBox.DrawItem += ComboBox_DrawItem;
             comboBox3.DrawItem += ComboBox_DrawItem;
             comboBox4.DrawItem += ComboBox_DrawItem;
@@ -102,6 +118,8 @@ namespace Busy_Light
             deviceSettings.Controls.Add(trackBar1);*/
             // Update label initially
             UpdateConnectionStatus();
+
+
             UpdateBrightnessLabel(trackBar1.Value);
 
         }
