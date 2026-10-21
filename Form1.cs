@@ -31,30 +31,30 @@ namespace Busy_Light
 
 
         public string label8_Text
-          {
-              get { return label8.Text; }
-              set { label8.Text = value; }
-          }
-          public bool UpdateConnectionStatus()
-          {
-              if (ComPortListener.IsConnected)
-              {
-                  label8_Text = "Connected";
-                  label8.BackColor = Color.Green;
+        {
+            get { return label8.Text; }
+            set { label8.Text = value; }
+        }
+        public bool UpdateConnectionStatus()
+        {
+            if (ComPortListener.IsConnected)
+            {
+                label8_Text = "Connected";
+                label8.BackColor = Color.Green;
                 label8.Font = new Font(label8.Font, FontStyle.Bold);
                 return true;
-              }
-              else
-              {
-               // deviceSettings.Enabled = true;
+            }
+            else
+            {
+                // deviceSettings.Enabled = true;
                 label8_Text = "Disconnected";
-                  label8.BackColor = Color.Red;
+                label8.BackColor = Color.Red;
                 label8.Font = new Font(label8.Font, FontStyle.Bold);
                 return false;
-              }
-          }
+            }
+        }
 
-         
+
 
         private Busy_Light.ServiceSettings _settingsService;
 
@@ -79,19 +79,19 @@ namespace Busy_Light
             trackBar1.Scroll += trackBar1_Scroll;
             trackBar1.Value = _settingsService.Settings.Brightness; // start at max (100%)
             checkBox1.Checked = _settingsService.Settings.StartWithWindows;
-            comboBox2.DrawMode = DrawMode.OwnerDrawFixed;
-            comboBox2.ItemHeight = 22;
+            oncallColorBox.DrawMode = DrawMode.OwnerDrawFixed;
+            oncallColorBox.ItemHeight = 22;
             comboBox3.DrawMode = DrawMode.OwnerDrawFixed;
             comboBox3.ItemHeight = 22;
             comboBox4.DrawMode = DrawMode.OwnerDrawFixed;
             comboBox4.ItemHeight = 22;
-            AddColorsToComboBox(comboBox2);
+            AddColorsToComboBox(oncallColorBox);
             AddColorsToComboBox(comboBox3);
             AddColorsToComboBox(comboBox4);
             label8.TabStop = false;
             label8.BorderStyle = BorderStyle.None;
             label8.TextAlign = ContentAlignment.MiddleCenter;
-            comboBox2.DrawItem += ComboBox_DrawItem;
+            oncallColorBox.DrawItem += ComboBox_DrawItem;
             comboBox3.DrawItem += ComboBox_DrawItem;
             comboBox4.DrawItem += ComboBox_DrawItem;
             /*deviceSettings.Controls.Add(comboBox4);
@@ -158,9 +158,9 @@ namespace Busy_Light
         }
         private void disableOnCallLighting()
         {
-            
 
-            
+
+
         }
         private async void Form1_Load(object sender, EventArgs e)
 
@@ -210,7 +210,7 @@ namespace Busy_Light
             combox2();
 
         }
-        
+
         private void trackBar1_Scroll(object sender, EventArgs e)
         {
             UpdateBrightnessLabel(trackBar1.Value);
@@ -223,7 +223,7 @@ namespace Busy_Light
    {
         comboBox1, checkBox1, label1, label2, checkBox2,
         button1, trackBar1, label4, label3, label5,
-        label6, comboBox3, comboBox4, comboBox2,checkBox3
+        label6, comboBox3, comboBox4, oncallColorBox,checkBox3
    };
             foreach (var control in controls)
             {
@@ -239,7 +239,7 @@ namespace Busy_Light
    {
         comboBox1, checkBox1, label1, label2, checkBox2,
         trackBar1, label4, label3, label5,
-        label6, comboBox3, comboBox4, comboBox2,
+        label6, comboBox3, comboBox4, oncallColorBox,
    };
             foreach (var control in controls)
             {
@@ -299,7 +299,7 @@ namespace Busy_Light
         }
         private void comboBox2_Click(object sender, EventArgs e)
         {
-          
+
         }
         private void combox2() //OnCall Lighting
         {
@@ -309,15 +309,15 @@ namespace Busy_Light
 
         public string ocColor { get; set; }
 
-        private void combox2_SelectionChanged(object sender, EventArgs e)
+        private void oncallColorBox_SelectionChanged(object sender, EventArgs e)
         {
-            MessageBox.Show($"Selected color: {comboBox2.SelectedItem}");
+            MessageBox.Show($"Selected color: {oncallColorBox.SelectedItem}");
 
 
             try
             {
                 // Make sure a color has been selected.
-                if (comboBox2.SelectedItem == null)
+                if (oncallColorBox.SelectedItem == null)
                 {
                     Debug.WriteLine("No color selected.");
                     return;
@@ -333,11 +333,11 @@ namespace Busy_Light
                         "Error",
                         MessageBoxButtons.OK,
                         MessageBoxIcon.Error);
-                    comboBox2.SelectedIndex = -1;
+                    oncallColorBox.SelectedIndex = -1;
                     return;
                 }
 
-                string selectedColor = comboBox2.SelectedItem.ToString();
+                string selectedColor = oncallColorBox.SelectedItem.ToString();
 
                 // Send the reset command before changing colors.
                 ComPortListener.heartbeatManager.SendData(new byte[] { 0xFE });
@@ -629,7 +629,7 @@ namespace Busy_Light
         private void Form1_FormClosing(object sender, FormClosingEventArgs e)
         {
 
-            
+
             if (!reallyClose)
             {
                 // Cancel the close and minimize to tray

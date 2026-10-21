@@ -43,7 +43,7 @@ namespace Busy_Light
             checkBox1 = new CheckBox();
             notifyIcon1 = new NotifyIcon(components);
             checkBox2 = new CheckBox();
-            comboBox2 = new ComboBox();
+            oncallColorBox = new ComboBox();
             label3 = new Label();
             label4 = new Label();
             label5 = new Label();
@@ -172,17 +172,16 @@ namespace Busy_Light
             checkBox2.Text = "Message Recieved Alert";
             checkBox2.UseVisualStyleBackColor = true;
             // 
-            // comboBox2
+            // oncallColorBox
             // 
-            comboBox2.DropDownStyle = ComboBoxStyle.DropDownList;
-            comboBox2.FormattingEnabled = true;
-            comboBox2.Location = new Point(665, 87);
-            comboBox2.Margin = new Padding(5);
-            comboBox2.Name = "comboBox2";
-            comboBox2.Size = new Size(105, 26);
-            comboBox2.TabIndex = 12;
-            comboBox2.SelectedValueChanged += combox2_SelectionChanged;
-            comboBox2.Click += comboBox2_Click;
+            oncallColorBox.DropDownStyle = ComboBoxStyle.DropDownList;
+            oncallColorBox.FormattingEnabled = true;
+            oncallColorBox.Location = new Point(665, 87);
+            oncallColorBox.Margin = new Padding(5);
+            oncallColorBox.Name = "oncallColorBox";
+            oncallColorBox.Size = new Size(105, 26);
+            oncallColorBox.TabIndex = 12;
+            oncallColorBox.SelectedValueChanged += oncallColorBox_SelectionChanged;
             // 
             // label3
             // 
@@ -301,7 +300,7 @@ namespace Busy_Light
             Controls.Add(comboBox3);
             Controls.Add(label4);
             Controls.Add(label3);
-            Controls.Add(comboBox2);
+            Controls.Add(oncallColorBox);
             Controls.Add(checkBox2);
             Controls.Add(checkBox1);
             Controls.Add(button2);
@@ -336,7 +335,7 @@ namespace Busy_Light
         private CheckBox checkBox1;
         private NotifyIcon notifyIcon1;
         private CheckBox checkBox2;
-        private ComboBox comboBox2;
+        private ComboBox oncallColorBox;
         private Label label3;
         private Label label4;
         private Label label5;
