@@ -102,6 +102,7 @@ namespace Busy_Light
                     // Read data while port is open
                     Debug.WriteLine(
                         $"Serial port {_portName} is open. Starting read loop...");
+
                     await ReadLoopAsync(token);
                 }
                 catch (OperationCanceledException)
@@ -382,7 +383,7 @@ namespace Busy_Light
                 {
                     _isConnected = value;
                     OnPropertyChanged(nameof(IsConnected));
-                    Debug.WriteLine($"Inside of Set for connection Value: {IsConnected}");
+                   
                 }
             }
         }

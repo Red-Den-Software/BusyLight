@@ -263,6 +263,7 @@ namespace Busy_Light
             // 
             // ConnectionStatusText
             // 
+            ConnectionStatusText.BorderStyle = BorderStyle.FixedSingle;
             ConnectionStatusText.Location = new Point(650, 331);
             ConnectionStatusText.Name = "ConnectionStatusText";
             ConnectionStatusText.Size = new Size(122, 26);

@@ -31,10 +31,10 @@ namespace Busy_Light
         
         public void UpdateConnectionStatus()
         {
-            Debug.WriteLine($"Form instance: {_connectionStatus.GetHashCode()}");
+            
             _connectionStatus.PropertyChanged += (sender, e) =>
             {
-                Debug.WriteLine($"FORM EVENT FIRED: {e.PropertyName}");
+                
                 if (e.PropertyName != nameof(ConnectionStatus.IsConnected))
                     return;
 
@@ -54,8 +54,7 @@ namespace Busy_Light
             {
                 ConnectionStatusText.Text = "Connected";
                 ConnectionStatusText.BackColor = Color.Green;
-                ConnectionStatusText.Font =
-                    new Font(ConnectionStatusText.Font, FontStyle.Bold);
+                ConnectionStatusText.ForeColor = Color.White;
 
                 Debug.WriteLine("Setting to Connected");
             }
@@ -63,8 +62,7 @@ namespace Busy_Light
             {
                 ConnectionStatusText.Text = "Disconnected";
                 ConnectionStatusText.BackColor = Color.Red;
-                ConnectionStatusText.Font =
-                    new Font(ConnectionStatusText.Font, FontStyle.Bold);
+                ConnectionStatusText.ForeColor = Color.White;
 
                 Debug.WriteLine("Setting to Disconnected");
             }
