@@ -90,24 +90,24 @@ namespace Busy_Light
             InitializeComponent();
             _restClient = restClient;
             _tokenService = tokenService;
-            trackBar1.Scroll += trackBar1_Scroll;
-            trackBar1.Value = _settingsService.Settings.Brightness; // start at max (100%)
-            checkBox1.Checked = _settingsService.Settings.StartWithWindows;
+            brightnessTrack.Scroll += trackBar1_Scroll;
+            brightnessTrack.Value = _settingsService.Settings.Brightness; // start at max (100%)
+            runOnStartup.Checked = _settingsService.Settings.StartWithWindows;
             oncallColorBox.DrawMode = DrawMode.OwnerDrawFixed;
             oncallColorBox.ItemHeight = 22;
-            comboBox3.DrawMode = DrawMode.OwnerDrawFixed;
-            comboBox3.ItemHeight = 22;
-            comboBox4.DrawMode = DrawMode.OwnerDrawFixed;
-            comboBox4.ItemHeight = 22;
+            offCallColor.DrawMode = DrawMode.OwnerDrawFixed;
+            offCallColor.ItemHeight = 22;
+            msgRecColor.DrawMode = DrawMode.OwnerDrawFixed;
+            msgRecColor.ItemHeight = 22;
             AddColorsToComboBox(oncallColorBox);
-            AddColorsToComboBox(comboBox3);
-            AddColorsToComboBox(comboBox4);
+            AddColorsToComboBox(offCallColor);
+            AddColorsToComboBox(msgRecColor);
             ConnectionStatusText.TabStop = false;
             ConnectionStatusText.BorderStyle = BorderStyle.None;
             ConnectionStatusText.TextAlign = ContentAlignment.MiddleCenter;
             oncallColorBox.DrawItem += ComboBox_DrawItem;
-            comboBox3.DrawItem += ComboBox_DrawItem;
-            comboBox4.DrawItem += ComboBox_DrawItem;
+            offCallColor.DrawItem += ComboBox_DrawItem;
+            msgRecColor.DrawItem += ComboBox_DrawItem;
             /*deviceSettings.Controls.Add(comboBox4);
             deviceSettings.Controls.Add(comboBox3);
             deviceSettings.Controls.Add(comboBox2);
@@ -118,7 +118,7 @@ namespace Busy_Light
             UpdateConnectionStatus();
 
 
-            UpdateBrightnessLabel(trackBar1.Value);
+            UpdateBrightnessLabel(brightnessTrack.Value);
 
         }
 
@@ -186,7 +186,7 @@ namespace Busy_Light
 
 
             watcher = new DeviceWatcher();
-            label7.Visible = false;
+            infoText.Visible = false;
             System.Diagnostics.Debug.WriteLine("InFormLoad");
             var token = _tokenService.Load();
             if (token != null)
@@ -221,15 +221,15 @@ namespace Busy_Light
 
             }
 
-            comboBox1.Items.Add("Available");
-            comboBox1.Items.Add("Unavailable");
+            manStatusBox.Items.Add("Available");
+            manStatusBox.Items.Add("Unavailable");
             combox2();
 
         }
 
         private void trackBar1_Scroll(object sender, EventArgs e)
         {
-            UpdateBrightnessLabel(trackBar1.Value);
+            UpdateBrightnessLabel(brightnessTrack.Value);
 
         }
         private void form1_show_hide()
@@ -237,9 +237,9 @@ namespace Busy_Light
 
             Control[] controls = new Control[]
    {
-        comboBox1, checkBox1, label1, label2, checkBox2,
-        button1, trackBar1, label4, label3, label5,
-        label6, comboBox3, comboBox4, oncallColorBox,checkBox3
+        manStatusBox, runOnStartup, label1, label2, msgRecCheck,
+        submitButton, brightnessTrack, label4, label3, label5,
+        label6, offCallColor, msgRecColor, oncallColorBox,rotateColor
    };
             foreach (var control in controls)
             {
@@ -253,9 +253,9 @@ namespace Busy_Light
 
             Control[] controls = new Control[]
    {
-        comboBox1, checkBox1, label1, label2, checkBox2,
-        trackBar1, label4, label3, label5,
-        label6, comboBox3, comboBox4, oncallColorBox,
+        manStatusBox, runOnStartup, label1, label2, msgRecCheck,
+        brightnessTrack, label4, label3, label5,
+        label6, offCallColor, msgRecColor, oncallColorBox,
    };
             foreach (var control in controls)
             {
@@ -619,13 +619,13 @@ namespace Busy_Light
         private void button1_Click(object sender, EventArgs e)
         {
             //ComPortListener serialPortScanner = new ComPortListener();
-            if (comboBox1.SelectedItem == null)
+            if (manStatusBox.SelectedItem == null)
             {
                 MessageBox.Show("Please select an option first.");
                 return;
             }
 
-            switch (comboBox1.SelectedItem.ToString())
+            switch (manStatusBox.SelectedItem.ToString())
             {
                 case "Available":
                     ComPortFunctions.ManualStatusChange("Available");
@@ -673,13 +673,13 @@ namespace Busy_Light
         private void button2_Click(object sender, EventArgs e)
         {
             form1_show_show();
-            label7.Visible = false;
+            infoText.Visible = false;
         }
 
         private void checkBox1_CheckedChanged(object sender, EventArgs e)
         {
             RegistryKey registryKey = Registry.CurrentUser.OpenSubKey("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run", true);
-            if (checkBox1.Checked)
+            if (runOnStartup.Checked)
             {
                 // Add the value in the registry so that the application runs at startup
                 registryKey.SetValue("Busy Light", Application.ExecutablePath);
@@ -708,8 +708,8 @@ namespace Busy_Light
         private void Info_Click(object sender, EventArgs e)
         {
             form1_show_hide();
-            label7.Text = "Busy Light v1.0\n\nDeveloped by Red Den Software\n\nThis application connects to your RingCentral account to monitor your presence status\n\n and updates a connected busy light accordingly. It also allows manual control of the light\n\n and customization of settings.\n\nFor support, please contact support@redden.dev";
-            label7.Visible = true;
+            infoText.Text = "Busy Light v1.0\n\nDeveloped by Red Den Software\n\nThis application connects to your RingCentral account to monitor your presence status\n\n and updates a connected busy light accordingly. It also allows manual control of the light\n\n and customization of settings.\n\nFor support, please contact support@redden.dev";
+            infoText.Visible = true;
         }
 
         private void label7_Click(object sender, EventArgs e)

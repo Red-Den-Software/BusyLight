@@ -33,41 +33,41 @@ namespace Busy_Light
         {
             components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form1));
-            trackBar1 = new TrackBar();
+            brightnessTrack = new TrackBar();
             label1 = new Label();
             label2 = new Label();
-            comboBox1 = new ComboBox();
-            button1 = new Button();
-            Info = new Button();
-            button2 = new Button();
-            checkBox1 = new CheckBox();
+            manStatusBox = new ComboBox();
+            submitButton = new Button();
+            infoButton = new Button();
+            settingsButton = new Button();
+            runOnStartup = new CheckBox();
             notifyIcon1 = new NotifyIcon(components);
-            checkBox2 = new CheckBox();
+            msgRecCheck = new CheckBox();
             oncallColorBox = new ComboBox();
             label3 = new Label();
             label4 = new Label();
             label5 = new Label();
-            comboBox3 = new ComboBox();
+            offCallColor = new ComboBox();
             label6 = new Label();
-            comboBox4 = new ComboBox();
-            label7 = new Label();
-            checkBox3 = new CheckBox();
+            msgRecColor = new ComboBox();
+            infoText = new Label();
+            rotateColor = new CheckBox();
             ConnectionStatusText = new Label();
-            button3 = new Button();
-            ((System.ComponentModel.ISupportInitialize)trackBar1).BeginInit();
+            loginButton = new Button();
+            ((System.ComponentModel.ISupportInitialize)brightnessTrack).BeginInit();
             SuspendLayout();
             // 
-            // trackBar1
+            // brightnessTrack
             // 
-            trackBar1.Location = new Point(636, 14);
-            trackBar1.Margin = new Padding(5);
-            trackBar1.Maximum = 255;
-            trackBar1.Name = "trackBar1";
-            trackBar1.Size = new Size(134, 45);
-            trackBar1.SmallChange = 10;
-            trackBar1.TabIndex = 1;
-            trackBar1.Scroll += trackBar1_Scroll;
-            trackBar1.ValueChanged += trackBar1_Scroll;
+            brightnessTrack.Location = new Point(636, 14);
+            brightnessTrack.Margin = new Padding(5);
+            brightnessTrack.Maximum = 255;
+            brightnessTrack.Name = "brightnessTrack";
+            brightnessTrack.Size = new Size(134, 45);
+            brightnessTrack.SmallChange = 10;
+            brightnessTrack.TabIndex = 1;
+            brightnessTrack.Scroll += trackBar1_Scroll;
+            brightnessTrack.ValueChanged += trackBar1_Scroll;
             // 
             // label1
             // 
@@ -93,67 +93,67 @@ namespace Busy_Light
             label2.TextAlign = ContentAlignment.TopCenter;
             label2.Click += label2_Click;
             // 
-            // comboBox1
+            // manStatusBox
             // 
-            comboBox1.DropDownStyle = ComboBoxStyle.DropDownList;
-            comboBox1.FormattingEnabled = true;
-            comboBox1.Location = new Point(183, 42);
-            comboBox1.Margin = new Padding(5);
-            comboBox1.Name = "comboBox1";
-            comboBox1.Size = new Size(154, 26);
-            comboBox1.TabIndex = 4;
+            manStatusBox.DropDownStyle = ComboBoxStyle.DropDownList;
+            manStatusBox.FormattingEnabled = true;
+            manStatusBox.Location = new Point(183, 42);
+            manStatusBox.Margin = new Padding(5);
+            manStatusBox.Name = "manStatusBox";
+            manStatusBox.Size = new Size(154, 26);
+            manStatusBox.TabIndex = 4;
             // 
-            // button1
+            // submitButton
             // 
-            button1.Location = new Point(363, 42);
-            button1.Margin = new Padding(5);
-            button1.Name = "button1";
-            button1.Size = new Size(96, 26);
-            button1.TabIndex = 5;
-            button1.Text = "Submit";
-            button1.UseVisualStyleBackColor = true;
-            button1.Click += button1_Click;
+            submitButton.Location = new Point(363, 42);
+            submitButton.Margin = new Padding(5);
+            submitButton.Name = "submitButton";
+            submitButton.Size = new Size(96, 26);
+            submitButton.TabIndex = 5;
+            submitButton.Text = "Submit";
+            submitButton.UseVisualStyleBackColor = true;
+            submitButton.Click += button1_Click;
             // 
-            // Info
+            // infoButton
             // 
-            Info.FlatStyle = FlatStyle.Popup;
-            Info.Font = new Font("Arial Rounded MT Bold", 14.25F, FontStyle.Italic);
-            Info.ForeColor = SystemColors.ControlDark;
-            Info.Location = new Point(11, 294);
-            Info.Margin = new Padding(4);
-            Info.Name = "Info";
-            Info.Size = new Size(163, 54);
-            Info.TabIndex = 8;
-            Info.Text = "Info";
-            Info.TextAlign = ContentAlignment.MiddleLeft;
-            Info.UseVisualStyleBackColor = true;
-            Info.Click += Info_Click;
+            infoButton.FlatStyle = FlatStyle.Popup;
+            infoButton.Font = new Font("Arial Rounded MT Bold", 14.25F, FontStyle.Italic);
+            infoButton.ForeColor = SystemColors.ControlDark;
+            infoButton.Location = new Point(11, 294);
+            infoButton.Margin = new Padding(4);
+            infoButton.Name = "infoButton";
+            infoButton.Size = new Size(163, 54);
+            infoButton.TabIndex = 8;
+            infoButton.Text = "Info";
+            infoButton.TextAlign = ContentAlignment.MiddleLeft;
+            infoButton.UseVisualStyleBackColor = true;
+            infoButton.Click += Info_Click;
             // 
-            // button2
+            // settingsButton
             // 
-            button2.FlatStyle = FlatStyle.Popup;
-            button2.Font = new Font("Arial Rounded MT Bold", 14.25F, FontStyle.Italic);
-            button2.ForeColor = SystemColors.ControlDark;
-            button2.Location = new Point(11, 14);
-            button2.Margin = new Padding(4);
-            button2.Name = "button2";
-            button2.Size = new Size(163, 55);
-            button2.TabIndex = 9;
-            button2.Text = "Settings";
-            button2.TextAlign = ContentAlignment.MiddleLeft;
-            button2.UseVisualStyleBackColor = true;
-            button2.Click += button2_Click;
+            settingsButton.FlatStyle = FlatStyle.Popup;
+            settingsButton.Font = new Font("Arial Rounded MT Bold", 14.25F, FontStyle.Italic);
+            settingsButton.ForeColor = SystemColors.ControlDark;
+            settingsButton.Location = new Point(11, 14);
+            settingsButton.Margin = new Padding(4);
+            settingsButton.Name = "settingsButton";
+            settingsButton.Size = new Size(163, 55);
+            settingsButton.TabIndex = 9;
+            settingsButton.Text = "Settings";
+            settingsButton.TextAlign = ContentAlignment.MiddleLeft;
+            settingsButton.UseVisualStyleBackColor = true;
+            settingsButton.Click += button2_Click;
             // 
-            // checkBox1
+            // runOnStartup
             // 
-            checkBox1.AutoSize = true;
-            checkBox1.Location = new Point(186, 82);
-            checkBox1.Name = "checkBox1";
-            checkBox1.Size = new Size(129, 22);
-            checkBox1.TabIndex = 10;
-            checkBox1.Text = "Run on Startup";
-            checkBox1.UseVisualStyleBackColor = true;
-            checkBox1.CheckedChanged += checkBox1_CheckedChanged;
+            runOnStartup.AutoSize = true;
+            runOnStartup.Location = new Point(186, 82);
+            runOnStartup.Name = "runOnStartup";
+            runOnStartup.Size = new Size(129, 22);
+            runOnStartup.TabIndex = 10;
+            runOnStartup.Text = "Run on Startup";
+            runOnStartup.UseVisualStyleBackColor = true;
+            runOnStartup.CheckedChanged += checkBox1_CheckedChanged;
             // 
             // notifyIcon1
             // 
@@ -162,15 +162,15 @@ namespace Busy_Light
             notifyIcon1.Visible = true;
             notifyIcon1.MouseDoubleClick += notifyIcon1_MouseDoubleClick;
             // 
-            // checkBox2
+            // msgRecCheck
             // 
-            checkBox2.AutoSize = true;
-            checkBox2.Location = new Point(186, 110);
-            checkBox2.Name = "checkBox2";
-            checkBox2.Size = new Size(197, 22);
-            checkBox2.TabIndex = 11;
-            checkBox2.Text = "Message Recieved Alert";
-            checkBox2.UseVisualStyleBackColor = true;
+            msgRecCheck.AutoSize = true;
+            msgRecCheck.Location = new Point(186, 110);
+            msgRecCheck.Name = "msgRecCheck";
+            msgRecCheck.Size = new Size(197, 22);
+            msgRecCheck.TabIndex = 11;
+            msgRecCheck.Text = "Message Recieved Alert";
+            msgRecCheck.UseVisualStyleBackColor = true;
             // 
             // oncallColorBox
             // 
@@ -211,15 +211,15 @@ namespace Busy_Light
             label5.TabIndex = 16;
             label5.Text = "Offcall Color:";
             // 
-            // comboBox3
+            // offCallColor
             // 
-            comboBox3.DropDownStyle = ComboBoxStyle.DropDownList;
-            comboBox3.FormattingEnabled = true;
-            comboBox3.Location = new Point(665, 123);
-            comboBox3.Margin = new Padding(5);
-            comboBox3.Name = "comboBox3";
-            comboBox3.Size = new Size(105, 26);
-            comboBox3.TabIndex = 15;
+            offCallColor.DropDownStyle = ComboBoxStyle.DropDownList;
+            offCallColor.FormattingEnabled = true;
+            offCallColor.Location = new Point(665, 123);
+            offCallColor.Margin = new Padding(5);
+            offCallColor.Name = "offCallColor";
+            offCallColor.Size = new Size(105, 26);
+            offCallColor.TabIndex = 15;
             // 
             // label6
             // 
@@ -230,36 +230,36 @@ namespace Busy_Light
             label6.TabIndex = 18;
             label6.Text = "Message Recieved Color:";
             // 
-            // comboBox4
+            // msgRecColor
             // 
-            comboBox4.DropDownStyle = ComboBoxStyle.DropDownList;
-            comboBox4.FormattingEnabled = true;
-            comboBox4.Location = new Point(665, 159);
-            comboBox4.Margin = new Padding(5);
-            comboBox4.Name = "comboBox4";
-            comboBox4.Size = new Size(105, 26);
-            comboBox4.TabIndex = 17;
+            msgRecColor.DropDownStyle = ComboBoxStyle.DropDownList;
+            msgRecColor.FormattingEnabled = true;
+            msgRecColor.Location = new Point(665, 159);
+            msgRecColor.Margin = new Padding(5);
+            msgRecColor.Name = "msgRecColor";
+            msgRecColor.Size = new Size(105, 26);
+            msgRecColor.TabIndex = 17;
             // 
-            // label7
+            // infoText
             // 
-            label7.AutoSize = true;
-            label7.Font = new Font("Arial", 10F);
-            label7.Location = new Point(181, 14);
-            label7.Name = "label7";
-            label7.Size = new Size(45, 16);
-            label7.TabIndex = 19;
-            label7.Text = "label7";
+            infoText.AutoSize = true;
+            infoText.Font = new Font("Arial", 10F);
+            infoText.Location = new Point(181, 14);
+            infoText.Name = "infoText";
+            infoText.Size = new Size(45, 16);
+            infoText.TabIndex = 19;
+            infoText.Text = "label7";
             // 
-            // checkBox3
+            // rotateColor
             // 
-            checkBox3.AutoSize = true;
-            checkBox3.Location = new Point(186, 138);
-            checkBox3.Name = "checkBox3";
-            checkBox3.Size = new Size(180, 22);
-            checkBox3.TabIndex = 20;
-            checkBox3.Text = "Rotating Status Light?";
-            checkBox3.UseVisualStyleBackColor = true;
-            checkBox3.CheckedChanged += checkBox3_CheckedChanged;
+            rotateColor.AutoSize = true;
+            rotateColor.Location = new Point(186, 138);
+            rotateColor.Name = "rotateColor";
+            rotateColor.Size = new Size(180, 22);
+            rotateColor.TabIndex = 20;
+            rotateColor.Text = "Rotating Status Light?";
+            rotateColor.UseVisualStyleBackColor = true;
+            rotateColor.CheckedChanged += checkBox3_CheckedChanged;
             // 
             // ConnectionStatusText
             // 
@@ -269,20 +269,20 @@ namespace Busy_Light
             ConnectionStatusText.Size = new Size(122, 26);
             ConnectionStatusText.TabIndex = 21;
             // 
-            // button3
+            // loginButton
             // 
-            button3.FlatStyle = FlatStyle.Popup;
-            button3.Font = new Font("Arial Rounded MT Bold", 14.25F, FontStyle.Italic);
-            button3.ForeColor = SystemColors.ControlDark;
-            button3.Location = new Point(11, 218);
-            button3.Margin = new Padding(4);
-            button3.Name = "button3";
-            button3.Size = new Size(163, 54);
-            button3.TabIndex = 22;
-            button3.Text = "Login";
-            button3.TextAlign = ContentAlignment.MiddleLeft;
-            button3.UseVisualStyleBackColor = true;
-            button3.Click += btnLogin_Click;
+            loginButton.FlatStyle = FlatStyle.Popup;
+            loginButton.Font = new Font("Arial Rounded MT Bold", 14.25F, FontStyle.Italic);
+            loginButton.ForeColor = SystemColors.ControlDark;
+            loginButton.Location = new Point(11, 218);
+            loginButton.Margin = new Padding(4);
+            loginButton.Name = "loginButton";
+            loginButton.Size = new Size(163, 54);
+            loginButton.TabIndex = 22;
+            loginButton.Text = "Login";
+            loginButton.TextAlign = ContentAlignment.MiddleLeft;
+            loginButton.UseVisualStyleBackColor = true;
+            loginButton.Click += btnLogin_Click;
             // 
             // Form1
             // 
@@ -290,26 +290,26 @@ namespace Busy_Light
             AutoScaleDimensions = new SizeF(9F, 18F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(784, 366);
-            Controls.Add(button3);
+            Controls.Add(loginButton);
             Controls.Add(ConnectionStatusText);
-            Controls.Add(checkBox3);
-            Controls.Add(label7);
+            Controls.Add(rotateColor);
+            Controls.Add(infoText);
             Controls.Add(label6);
-            Controls.Add(comboBox4);
+            Controls.Add(msgRecColor);
             Controls.Add(label5);
-            Controls.Add(comboBox3);
+            Controls.Add(offCallColor);
             Controls.Add(label4);
             Controls.Add(label3);
             Controls.Add(oncallColorBox);
-            Controls.Add(checkBox2);
-            Controls.Add(checkBox1);
-            Controls.Add(button2);
-            Controls.Add(Info);
-            Controls.Add(button1);
-            Controls.Add(comboBox1);
+            Controls.Add(msgRecCheck);
+            Controls.Add(runOnStartup);
+            Controls.Add(settingsButton);
+            Controls.Add(infoButton);
+            Controls.Add(submitButton);
+            Controls.Add(manStatusBox);
             Controls.Add(label2);
             Controls.Add(label1);
-            Controls.Add(trackBar1);
+            Controls.Add(brightnessTrack);
             Font = new Font("Arial", 12F);
             FormBorderStyle = FormBorderStyle.FixedSingle;
             Icon = (Icon)resources.GetObject("$this.Icon");
@@ -321,30 +321,30 @@ namespace Busy_Light
             TransparencyKey = Color.FromArgb(255, 128, 0);
             FormClosing += Form1_FormClosing;
             Load += Form1_Load;
-            ((System.ComponentModel.ISupportInitialize)trackBar1).EndInit();
+            ((System.ComponentModel.ISupportInitialize)brightnessTrack).EndInit();
             ResumeLayout(false);
             PerformLayout();
         }
-        private TrackBar trackBar1;
+        private TrackBar brightnessTrack;
         private Label label1;
         private Label label2;
-        private ComboBox comboBox1;
-        private Button button1;
-        private Button Info;
-        private Button button2;
-        private CheckBox checkBox1;
+        private ComboBox manStatusBox;
+        private Button submitButton;
+        private Button infoButton;
+        private Button settingsButton;
+        private CheckBox runOnStartup;
         private NotifyIcon notifyIcon1;
-        private CheckBox checkBox2;
+        private CheckBox msgRecCheck;
         private ComboBox oncallColorBox;
         private Label label3;
         private Label label4;
         private Label label5;
-        private ComboBox comboBox3;
+        private ComboBox offCallColor;
         private Label label6;
-        private ComboBox comboBox4;
-        private Label label7;
-        private CheckBox checkBox3;
+        private ComboBox msgRecColor;
+        private Label infoText;
+        private CheckBox rotateColor;
         private Label ConnectionStatusText;
-        private Button button3;
+        private Button loginButton;
     }
 }
