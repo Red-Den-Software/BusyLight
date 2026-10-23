@@ -23,10 +23,10 @@ namespace Busy_Light
     {
         private SerialPort _serialPort;
         private readonly object _portLock = new object();
-        private ConnectionStatus _connectionStatus = new ConnectionStatus();
+       
         private CancellationTokenSource? _cts;
         private Task? _readLoopTask;
-
+        private ConnectionStatus _connectionStatus = Form1._connectionStatus;
         private DateTime _lastHeartbeatTime = DateTime.MinValue;
 
         private readonly string _portName;
@@ -254,7 +254,7 @@ namespace Busy_Light
                 "ESP32 heartbeat detected.");
 
             // This is the important reconnect detection
-            if (!_connectionStatus.IsConnected)
+            if (_connectionStatus.IsConnected)
             {
                 Debug.WriteLine(
                     "ESP32 RECONNECTED - heartbeat detected.");

@@ -26,9 +26,9 @@ namespace Busy_Light
         private const int HEARTBEAT_TIMEOUT_SECONDS = 10;
         GroupBox deviceSettings = new GroupBox();
         private System.Threading.Timer? _heartbeatTimer;
-        private ConnectionStatus _connectionStatus = new ConnectionStatus();
+        public static ConnectionStatus _connectionStatus = new ConnectionStatus();
         public static event Action<byte> OnBrightnessReceived;
-
+        
         public void UpdateConnectionStatus()
         {
             Debug.WriteLine($"Form instance: {_connectionStatus.GetHashCode()}");
