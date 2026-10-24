@@ -1,4 +1,5 @@
 using Busy_Light.Device_Events;
+using Busy_Light.RC;
 using Microsoft.Win32;
 using RingCentral;
 using RingCentral.Net.AuthorizeUri;
@@ -151,6 +152,23 @@ namespace Busy_Light
 {
     "/restapi/v1.0/account/~/extension/~/presence"
 }, message => { Console.WriteLine("Notification received"); });
+
+            ReadAccountPresenceParameters parameters = new ReadAccountPresenceParameters
+            {
+                detailedTelephonyState = true
+            };
+            var response = await _restClient.Restapi().Account("~").Presence().Get(parameters);
+
+            Presence.Body body = new Presence.Body();
+            foreach (var record in response.records)
+            {
+                record.telephonyStatus = body.telephonyStatus;
+                record.presenceStatus = body.presenceStatus;
+
+                Debug.WriteLine($"In Presence Status:{record.presenceStatus} Out Presence Status:{body.presenceStatus}");
+            }
+
+
         }
         private async Task SMSWS()
         {
@@ -191,6 +209,7 @@ namespace Busy_Light
             var token = _tokenService.Load();
             if (token != null)
             {
+                Debug.WriteLine("Token Doesn't = null");
                 try
                 {
                     _restClient.token = new TokenInfo
@@ -219,6 +238,10 @@ namespace Busy_Light
                     await loginProc(); // also good to retry login here
                 }
 
+            }
+            else
+            {
+                await loginProc();
             }
 
             manStatusBox.Items.Add("Available");

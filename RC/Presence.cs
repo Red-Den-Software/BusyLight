@@ -25,6 +25,8 @@ namespace Busy_Light.RC
 
             public string? userStatus { get; set; }
 
+            public string? presenceStatus { get; set; }
+
             public string? meetingStatus { get; set; }
 
             public string? dndStatus { get; set; }
